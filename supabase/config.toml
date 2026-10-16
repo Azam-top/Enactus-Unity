@@ -1,0 +1,8 @@
+# Minimal Supabase CLI config for Enactus KazNU private intake.
+# Anonymous visitors call the intake function, so the gateway JWT check is switched off for it explicitly.
+# Authorization happens in the function itself: origin allowlist, server-verified CAPTCHA, durable rate limits.
+# (Current Supabase guidance: publishable/secret API keys are not JWTs, so `verify_jwt = false` + in-code checks.)
+project_id = "enactus-kaznu"
+
+[functions.submit-intake]
+verify_jwt = false

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+# Sitemap: added with the production domain (see docs/LAUNCH-CHECKLIST.md)

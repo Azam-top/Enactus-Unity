@@ -1,0 +1,31 @@
+.switcher {
+  display: inline-flex;
+  padding: 2px;
+  border: 1px solid var(--line-on-light);
+  border-radius: var(--radius-ctl);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 44px;
+  padding: 0 8px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  color: var(--muted-on-light);
+  transition: background-color 170ms var(--ease);
+}
+
+.link:hover {
+  color: var(--graphite);
+}
+
+.link[aria-current='true'] {
+  background: var(--graphite);
+  color: var(--paper);
+}

@@ -1,0 +1,163 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line-on-light);
+}
+
+@supports (backdrop-filter: blur(12px)) {
+  .header {
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+.bar {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  min-height: 44px;
+  font-size: 20px;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brandName {
+  font-weight: 700;
+}
+
+.brandSuffix {
+  font-weight: 500;
+  color: var(--muted-on-light);
+}
+
+.nav {
+  display: none;
+  margin-left: auto;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  font-size: 16px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.navLink:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.langDesktop {
+  display: none;
+}
+
+.cta {
+  display: none;
+}
+
+.menuButton {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--line-on-light);
+  border-radius: var(--radius-ctl);
+  background: transparent;
+}
+
+.menu {
+  border-top: 1px solid var(--line-on-light);
+  background: var(--paper);
+  padding-block: 12px 20px;
+  max-height: calc(100svh - var(--header-h));
+  overflow-y: auto;
+}
+
+.menu[hidden] {
+  display: none;
+}
+
+.menuLink {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  font-size: 18px;
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid var(--line-on-light);
+}
+
+.menuLang {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.menuLangLabel {
+  font-size: 14px;
+  color: var(--muted-on-light);
+}
+
+.menuCta {
+  display: flex;
+  margin-top: 16px;
+}
+
+@media (min-width: 520px) {
+  .cta {
+    display: inline-flex;
+    min-height: 44px;
+    padding: 0 16px;
+    font-size: 15px;
+  }
+
+  .menuCta {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .nav {
+    display: flex;
+  }
+
+  .langDesktop {
+    display: block;
+    margin-right: 8px;
+  }
+
+  .menuButton,
+  .menu {
+    display: none;
+  }
+
+  .cta {
+    min-height: 48px;
+    padding: 0 22px;
+    font-size: 16px;
+  }
+}

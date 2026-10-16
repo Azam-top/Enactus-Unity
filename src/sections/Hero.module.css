@@ -1,0 +1,90 @@
+.hero {
+  padding-block: 40px var(--section-y);
+}
+
+.grid {
+  display: grid;
+  gap: 40px;
+}
+
+.label {
+  color: var(--muted-on-light);
+  margin-bottom: 20px;
+}
+
+.title {
+  font-size: clamp(2.4rem, 10vw, 3.4rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+.support {
+  margin-top: 24px;
+  max-width: 34em;
+  color: var(--muted-on-light);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.visual {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* Animated wrappers must span the column, otherwise the percentage-width frame collapses to 0. */
+.layer {
+  display: flex;
+  justify-content: inherit;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding-top: 64px;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 32px;
+    align-items: center;
+  }
+
+  .title {
+    font-size: clamp(3.1rem, 6.2vw, 6rem);
+    line-height: 1.04;
+  }
+
+  .visual {
+    justify-content: flex-end;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    min-height: calc(100svh - var(--header-h));
+    display: flex;
+    align-items: center;
+    padding-block: 72px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 24px;
+    width: 100%;
+  }
+
+  .text {
+    grid-column: 1 / 8;
+  }
+
+  .visual {
+    grid-column: 8 / 13;
+  }
+}

@@ -1,0 +1,70 @@
+.section {
+  padding-block: 0 var(--section-y);
+}
+
+.grid {
+  display: grid;
+  gap: 24px;
+  padding-top: 40px;
+  border-top: 1px solid var(--line-on-light);
+}
+
+.eyebrow {
+  margin-bottom: 12px;
+  color: var(--muted-on-light);
+}
+
+.title {
+  font-size: clamp(1.6rem, 5vw, 2.2rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  font-weight: 700;
+}
+
+.body {
+  margin-top: 16px;
+  max-width: 36em;
+  color: var(--muted-on-light);
+}
+
+.link {
+  margin-top: 8px;
+  min-height: 44px;
+}
+
+.address {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  font-style: normal;
+  font-size: 16px;
+}
+
+.addressLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-on-light);
+}
+
+.note {
+  font-size: 14px;
+  color: var(--muted-on-light);
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 24px;
+  }
+
+  .grid > div {
+    grid-column: 1 / 8;
+  }
+
+  .address {
+    grid-column: 9 / 13;
+    padding-top: 28px;
+  }
+}
