@@ -1,12 +1,28 @@
 // Phase 2 visual + behaviour checks (emulated viewports in system Chrome; not real devices).
 import { chromium } from 'playwright-core'
-import { mkdirSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 
 const base = process.env.BASE_URL ?? 'http://127.0.0.1:4173'
 const out = 'screenshots'
 mkdirSync(out, { recursive: true })
 
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true })
+// Chromium builds without H.264 (e.g. the open-source one in CI containers) cannot decode the real hero video.
+// VIDEO_OVERRIDE=/path/to/same-footage-in-VP9.mp4 serves a stand-in for the video checks; real Chrome does not need it.
+const videoOverride = process.env.VIDEO_OVERRIDE
+const overrideVideo = async (context) => {
+  if (!videoOverride) return
+  const bytes = readFileSync(videoOverride)
+  // Honour Range requests: without them the browser treats the video as unseekable.
+  await context.route('**/qanat-hero.mp4', (route) => {
+    const range = /bytes=(\d*)-(\d*)/.exec(route.request().headers().range ?? '')
+    const headers = { 'content-type': 'video/mp4', 'accept-ranges': 'bytes' }
+    if (!range) return route.fulfill({ status: 200, headers, body: bytes })
+    const start = range[1] ? Number(range[1]) : 0
+    const end = range[2] ? Math.min(Number(range[2]), bytes.length - 1) : bytes.length - 1
+    return route.fulfill({ status: 206, headers: { ...headers, 'content-range': `bytes ${start}-${end}/${bytes.length}` }, body: bytes.subarray(start, end + 1) })
+  })
+}
 const results = []
 const log = (name, ok, detail = '') => {
   results.push({ name, ok, detail })
@@ -83,37 +99,68 @@ for (const loc of locales) {
   await page.close()
 }
 
-// ---------- 3. Desktop: scroll-linked video + movement, reversible ----------
+// ---------- 3. Desktop: hero bird lifts with the scroll; QANAT video is scrubbed by the closing section; both reversible ----------
 {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  await overrideVideo(ctx)
   const page = await ctx.newPage()
   await page.goto(`${base}/ru`, { waitUntil: 'networkidle' })
-  await page.waitForTimeout(3500) // let idle video preload finish
+  await page.waitForTimeout(2800) // entrance (0.35s + 1.7s) finished
+  const bird = () =>
+    page.evaluate(() => {
+      const el = document.querySelector('img[src*="popup-bird"]')
+      const cs = getComputedStyle(el)
+      return { opacity: Number(Number(cs.opacity).toFixed(2)), transform: cs.transform }
+    })
+  const birdAt = async (y) => { await page.evaluate((yy) => window.scrollTo(0, yy), y); await page.waitForTimeout(1800); return bird() }
+  const b0 = await bird()
+  log('hero: the illustration, the bird layer and the headline are present', b0.opacity === 1 && (await page.getByRole('heading', { level: 1 }).isVisible()) && (await page.locator('img[src*="popup-scene"]').first().isVisible()), JSON.stringify(b0))
+  const b1 = await birdAt(300)
+  const b2 = await birdAt(700)
+  const b3 = await birdAt(1100)
+  log('scroll down: the bird lifts away (transform changes) and fades out', b1.transform !== b0.transform && b3.opacity < b1.opacity && b3.opacity <= 0.2, `opacity ${b0.opacity} → ${b1.opacity} → ${b2.opacity} → ${b3.opacity}`)
+  const back = await birdAt(0)
+  log('scroll up: the bird returns to where the illustration put it', back.opacity === 1 && Math.abs(Number(back.transform.split(',')[4] ?? 0)) < 2, `opacity=${back.opacity} transform=${back.transform}`)
+  await page.screenshot({ path: `${out}/ru-1440-scroll-0.png` })
+  await birdAt(350); await page.screenshot({ path: `${out}/ru-1440-scroll-350.png` })
+
+  // The video lives in the closing section and is fetched only when it is close.
   const probe = () =>
     page.evaluate(() => {
       const v = document.querySelector('video')
-      const scene = v.closest('div[class*="frame"]').parentElement
-      const cs = getComputedStyle(scene)
-      return { t: Number(v.currentTime.toFixed(2)), paused: v.paused, dur: v.duration, readyState: v.readyState, opacity: Number(Number(cs.opacity).toFixed(2)), transform: cs.transform, mode: v.closest('[data-mascot-mode]').dataset.mascotMode }
+      return { t: Number(v.currentTime.toFixed(2)), paused: v.paused, dur: v.duration, readyState: v.readyState, preload: v.preload, mode: v.closest('[data-mascot-mode]').dataset.mascotMode }
     })
-  const at = async (y) => { await page.evaluate((yy) => window.scrollTo(0, yy), y); await page.waitForTimeout(2800); return probe() }
+  const early = await probe()
+  log('QANAT video is not fetched with the first screen', early.preload === 'none' && early.readyState === 0, JSON.stringify(early))
+  const geo = await page.evaluate(() => {
+    const el = document.getElementById('contact')
+    const r = el.getBoundingClientRect()
+    return { top: r.top + window.scrollY, height: r.height, vh: window.innerHeight, max: document.documentElement.scrollHeight - window.innerHeight }
+  })
+  // ScrollTrigger range: start "top 85%" → end "bottom 70%".
+  const startY = geo.top - geo.vh * 0.85
+  const endY = geo.top + geo.height - geo.vh * 0.7
+  const at = async (p) => {
+    const y = Math.min(geo.max, Math.max(0, startY + (endY - startY) * p))
+    await page.evaluate((yy) => window.scrollTo(0, yy), y)
+    await page.waitForTimeout(3200)
+    return probe()
+  }
+  await page.evaluate((y) => window.scrollTo(0, y), Math.max(0, startY - 600))
+  await page.waitForTimeout(3500) // let the video load
   const s0 = await probe()
-  log('hero: scrub mode, video loaded, paused (no free autoplay)', s0.mode === 'scrub' && s0.readyState >= 3 && s0.paused === true, JSON.stringify({ mode: s0.mode, rs: s0.readyState, paused: s0.paused, dur: s0.dur }))
-  const a = await at(250)
-  const b = await at(500)
-  const c = await at(800)
-  log('scroll down: video time increases with scroll', a.t > s0.t && b.t > a.t && c.t > b.t, `t: ${s0.t} → ${a.t} → ${b.t} → ${c.t}`)
-  log('scroll down: bird moves (transform changes) and fades', b.transform !== s0.transform && c.opacity < s0.opacity, `opacity ${s0.opacity} → ${b.opacity} → ${c.opacity}`)
-  const b2 = await at(500)
-  const a2 = await at(250)
-  const z = await at(0)
-  log('scroll up: video plays backward (time decreases)', b2.t < c.t && a2.t < b2.t && z.t <= 0.1, `t: ${c.t} → ${b2.t} → ${a2.t} → ${z.t}`)
-  log('scroll up: position returns to the start', z.opacity === s0.opacity && Math.abs(b2.t - b.t) < 0.25, `opacity back=${z.opacity}; t at 500 down=${b.t} up=${b2.t}`)
-  await page.screenshot({ path: `${out}/ru-1440-scroll-0.png` })
-  await at(350); await page.screenshot({ path: `${out}/ru-1440-scroll-350.png` })
-  // speed limit: an instant jump to the bottom of the hero must NOT make the wings flap faster than real time
-  await at(0)
-  await page.evaluate(() => window.scrollTo(0, 850))
+  log('closing scene: scrub mode, video loaded when near, paused (no free autoplay)', s0.mode === 'scrub' && s0.readyState >= 3 && s0.paused === true, JSON.stringify(s0))
+  const v1 = await at(0.35)
+  const v2 = await at(0.7)
+  const v3 = await at(1)
+  log('scroll down: video time increases with scroll', v1.t > s0.t && v2.t > v1.t && v3.t >= v2.t, `t: ${s0.t} → ${v1.t} → ${v2.t} → ${v3.t}`)
+  const w2 = await at(0.7)
+  const w1 = await at(0.35)
+  const w0 = await at(0)
+  log('scroll up: video plays backward (time decreases)', w2.t < v3.t && w1.t < w2.t && w0.t <= 0.15, `t: ${v3.t} → ${w2.t} → ${w1.t} → ${w0.t}`)
+  log('scroll up: same position gives the same frame (reversible)', Math.abs(w2.t - v2.t) < 0.3 && Math.abs(w1.t - v1.t) < 0.3, `0.7: ${v2.t}/${w2.t}  0.35: ${v1.t}/${w1.t}`)
+  // speed limit: an instant jump across the whole section must NOT make the wings flap faster than real time
+  await page.evaluate((y) => window.scrollTo(0, y), endY)
   await page.waitForTimeout(500)
   const r1 = await probe()
   await page.waitForTimeout(1000)
@@ -123,7 +170,7 @@ for (const loc of locales) {
   await page.waitForTimeout(4500)
   const r3 = await probe()
   log('speed limit: it still catches up to the scroll position', r3.t > 3.8, `t=${r3.t}`)
-  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.evaluate((y) => window.scrollTo(0, y), startY)
   await page.waitForTimeout(500)
   const q1 = await probe()
   await page.waitForTimeout(1000)
@@ -142,8 +189,8 @@ for (const loc of locales) {
   log('OS reduced motion: manual mode with a play control, no autoplay', mode === 'manual' && (await page.evaluate(() => document.querySelector('video').paused)) && (await page.getByRole('button', { name: /анимацию QANAT/ }).isVisible()), `mode=${mode}`)
   await page.evaluate(() => window.scrollTo(0, 450))
   await page.waitForTimeout(600)
-  const op = await page.evaluate(() => getComputedStyle(document.querySelector('video').closest('div[class*="frame"]').parentElement).opacity)
-  log('OS reduced motion: no scroll fade/transform; content visible', op === '1' && (await page.getByRole('heading', { level: 1 }).isVisible()), `opacity=${op}`)
+  const op = await page.evaluate(() => { const b = document.querySelector('img[src*="popup-bird"]'); const cs = getComputedStyle(b); return `${cs.opacity}|${cs.transform}` })
+  log('OS reduced motion: the bird does not fly (no scroll fade/transform); content visible', op === '1|none' && (await page.getByRole('heading', { level: 1 }).isVisible()), `bird=${op}`)
   const sw = page.getByRole('button', { name: 'Меньше анимации' })
   log('OS reduced motion: switch shows as on and is disabled with a note', (await sw.getAttribute('aria-pressed')) === 'true' && (await sw.isDisabled()))
   await ctx.close()
@@ -363,17 +410,18 @@ for (const loc of locales) {
   const p2 = await ctx2.newPage()
   await p2.route('**/qanat-hero.mp4', (r) => r.abort())
   await p2.goto(`${base}/ru`, { waitUntil: 'networkidle' })
-  await p2.waitForTimeout(3500)
-  await p2.evaluate(() => window.scrollTo(0, 300))
-  await p2.waitForTimeout(600)
-  const ok = (await p2.getByRole('heading', { level: 1 }).isVisible()) && (await p2.getByRole('link', { name: 'Поделиться идеей' }).first().isVisible())
-  log('video failure: page, CTAs and poster stay usable while scrolling', ok)
+  await p2.waitForTimeout(1500)
+  await p2.evaluate(() => document.getElementById('contact').scrollIntoView())
+  await p2.waitForTimeout(2500)
+  const ok = (await p2.getByRole('heading', { name: /Следующий проект/ }).isVisible()) && (await p2.getByRole('link', { name: 'Поделиться идеей' }).last().isVisible())
+  log('video failure: closing section, CTAs and poster stay usable while scrolling', ok)
   await ctx2.close()
 
   const ctx3 = await browser.newContext({ viewport: { width: 1440, height: 900 } })
   const p3 = await ctx3.newPage()
   await p3.addInitScript(() => { Object.defineProperty(navigator, 'connection', { value: { saveData: true } }) })
   await p3.goto(`${base}/ru`, { waitUntil: 'networkidle' })
+  await p3.evaluate(() => document.getElementById('contact').scrollIntoView())
   await p3.waitForTimeout(2500)
   const info = await p3.evaluate(() => ({ mode: document.querySelector('[data-mascot-mode]').dataset.mascotMode, preload: document.querySelector('video').preload, rs: document.querySelector('video').readyState }))
   log('Save-Data: poster only, video not preloaded', info.mode === 'manual' && info.preload === 'none' && info.rs === 0, JSON.stringify(info))
@@ -386,7 +434,7 @@ for (const loc of locales) {
   const page = await ctx.newPage()
   await page.goto(`${base}/ru`, { waitUntil: 'networkidle' })
   await page.waitForTimeout(3000)
-  const op = async () => { await page.evaluate(() => window.scrollTo(0, 500)); await page.waitForTimeout(1000); return page.evaluate(() => Number(getComputedStyle(document.querySelector('video').closest('div[class*="frame"]').parentElement).opacity).toFixed(2)) }
+  const op = async () => { await page.evaluate(() => window.scrollTo(0, 500)); await page.waitForTimeout(1800); return page.evaluate(() => Number(getComputedStyle(document.querySelector('img[src*="popup-bird"]')).opacity).toFixed(2)) }
   const first = await op()
   await page.setViewportSize({ width: 1100, height: 800 })
   await page.setViewportSize({ width: 1440, height: 900 })
@@ -396,7 +444,7 @@ for (const loc of locales) {
   await page.waitForTimeout(600)
   const second = await op()
   const dupes = await page.locator('video').count()
-  log('resize + language switch: one video, same scroll response (no duplicate triggers)', dupes === 1 && Math.abs(Number(first) - Number(second)) < 0.2, `opacity@500: ${first} → ${second}`)
+  log('resize + language switch: one video, same bird scroll response (no duplicate triggers)', dupes === 1 && Math.abs(Number(first) - Number(second)) < 0.2, `opacity@500: ${first} → ${second}`)
   await ctx.close()
 }
 

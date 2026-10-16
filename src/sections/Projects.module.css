@@ -1,37 +1,99 @@
+/*
+  The dark chapter is cut like paper: a ridge along the top and a gentler one along the bottom (the Alatau of the
+  illustration). --ridge is the height of the cut; padding keeps content clear of it.
+*/
 .section {
+  --ridge: 28px;
   position: relative;
   isolation: isolate;
-  padding-block: var(--section-y);
+  padding-block: calc(var(--section-y) + var(--ridge)) calc(var(--section-y) * 0.8);
   color: var(--paper);
+  background: var(--graphite);
+  clip-path: polygon(
+    0 calc(var(--ridge) * 0.9),
+    5% calc(var(--ridge) * 0.55),
+    9% calc(var(--ridge) * 0.75),
+    15% calc(var(--ridge) * 0.2),
+    19% calc(var(--ridge) * 0.5),
+    24% calc(var(--ridge) * 0.1),
+    29% calc(var(--ridge) * 0.55),
+    36% calc(var(--ridge) * 0.3),
+    41% calc(var(--ridge) * 0.7),
+    47% calc(var(--ridge) * 0.25),
+    53% calc(var(--ridge) * 0.65),
+    60% 0,
+    65% calc(var(--ridge) * 0.45),
+    72% calc(var(--ridge) * 0.8),
+    78% calc(var(--ridge) * 0.3),
+    84% calc(var(--ridge) * 0.6),
+    90% calc(var(--ridge) * 0.35),
+    95% calc(var(--ridge) * 0.7),
+    100% calc(var(--ridge) * 0.4),
+    100% calc(100% - var(--ridge) * 0.35),
+    80% 100%,
+    58% calc(100% - var(--ridge) * 0.45),
+    33% calc(100% - var(--ridge) * 0.08),
+    12% calc(100% - var(--ridge) * 0.5),
+    0 calc(100% - var(--ridge) * 0.2)
+  );
 }
 
-.layer {
+.backdrop {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--graphite);
-  transform-origin: 50% 50%;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 60% at 80% 0%, rgba(255, 194, 34, 0.07), transparent 60%),
+    var(--graphite);
+}
+
+.ridge {
+  position: absolute;
+  left: -2%;
+  right: -2%;
+  bottom: -2%;
+  height: 46%;
+}
+
+.ridge svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ridge[data-depth='0'] path {
+  fill: #121b18;
+}
+
+.ridge[data-depth='1'] path {
+  fill: #16211d;
+}
+
+.ridge[data-depth='2'] path {
+  fill: #1b2924;
+}
+
+.ridge[data-depth='1'] {
+  height: 38%;
+}
+
+.ridge[data-depth='2'] {
+  height: 30%;
 }
 
 .head {
-  max-width: 760px;
-}
-
-.eyebrow {
-  margin-bottom: 16px;
-  color: var(--gold);
+  display: grid;
+  gap: 16px;
+  max-width: 880px;
 }
 
 .lead {
-  margin-top: 16px;
-  max-width: 34em;
+  max-width: 30em;
   color: var(--muted-on-dark);
 }
 
 .featured {
-  display: grid;
-  gap: 40px;
-  margin-top: 56px;
+  margin-top: 72px;
   padding-top: 40px;
   border-top: 1px solid var(--line-on-dark);
 }
@@ -41,21 +103,28 @@
 }
 
 .caseName {
-  margin-top: 12px;
-  font-size: clamp(2.6rem, 11vw, 4rem);
-  line-height: 1;
-  letter-spacing: -0.04em;
-  font-weight: 700;
+  margin-top: 20px;
+  font-size: clamp(4rem, 17vw, 6rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  font-weight: 500;
+}
+
+.caseGrid {
+  display: grid;
+  gap: 40px;
+  margin-top: 32px;
 }
 
 .caseBody {
-  margin-top: 20px;
-  max-width: 32em;
-  color: var(--muted-on-dark);
+  max-width: 28em;
+  font-size: 1.12em;
+  color: var(--paper);
 }
 
 .disclosureWrap {
   margin-top: 28px;
+  max-width: 36em;
 }
 
 .disclosureBody {
@@ -71,7 +140,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 16px 24px;
+  gap: 16px 28px;
   margin-top: 28px;
 }
 
@@ -79,37 +148,35 @@
   min-height: 44px;
 }
 
+/* Facts are a hairline list, not a card: the case name is the one big thing here. */
 .facts {
-  align-self: start;
-  padding: 24px;
-  border: 1px solid var(--line-on-dark);
-  border-radius: var(--radius-media);
-  background: var(--graphite-soft);
+  align-self: end;
 }
 
-.fact + .fact {
-  margin-top: 20px;
-  padding-top: 20px;
+.fact {
+  padding-block: 18px;
   border-top: 1px solid var(--line-on-dark);
 }
 
+.fact:last-child {
+  border-bottom: 1px solid var(--line-on-dark);
+}
+
 .fact dt {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 15px;
   color: var(--muted-on-dark);
 }
 
 .fact dd {
-  margin-top: 6px;
-  font-size: 20px;
-  line-height: 1.3;
-  font-weight: 500;
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
 }
 
 .archive {
-  margin-top: 64px;
+  margin-top: 88px;
 }
 
 .archiveHead {
@@ -119,8 +186,7 @@
 }
 
 .archiveTitle {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 30px;
   letter-spacing: -0.02em;
 }
 
@@ -132,40 +198,48 @@
 
 .archive ul {
   border-top: 1px solid var(--line-on-dark);
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 .archiveBadge {
   display: inline-block;
   margin-right: 12px;
-  padding: 2px 10px;
+  padding: 2px 12px;
   border: 1px solid var(--gold);
   border-radius: 999px;
   color: var(--gold);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 500;
   vertical-align: 2px;
 }
 
 @media (min-width: 768px) {
-  .caseName {
-    font-size: clamp(3.5rem, 8vw, 6.5rem);
+  .section {
+    --ridge: 48px;
   }
 
-  .facts {
-    padding: 32px;
+  .caseName {
+    font-size: clamp(6rem, 14vw, 11rem);
+  }
+
+  .featured {
+    margin-top: 96px;
   }
 }
 
 @media (min-width: 1024px) {
-  .featured {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: 24px;
+  .section {
+    --ridge: 64px;
   }
 
-  .featuredMain {
+  .caseGrid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 24px;
+    margin-top: 48px;
+  }
+
+  .caseMain {
     grid-column: 1 / 8;
   }
 

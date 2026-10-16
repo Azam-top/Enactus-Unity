@@ -1,24 +1,14 @@
+/*
+  QANAT's frame: a sheet of the same warm paper, corner folded, resting on the page. The video has its own opaque
+  studio background, so it is shown as this bounded sheet and never as a free-floating cut-out.
+*/
 .frame {
+  --fold: 36px;
   position: relative;
-  width: min(100%, 240px);
+  width: 100%;
   aspect-ratio: 1 / 1;
-  border-radius: 24px;
   background: #f3ece1;
-  border: 1px solid var(--line-on-light);
-  box-shadow: 0 18px 40px -24px rgba(7, 13, 13, 0.35);
   overflow: hidden;
-}
-
-@media (min-width: 768px) {
-  .frame {
-    width: 300px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .frame {
-    width: min(100%, 380px);
-  }
 }
 
 .media,
@@ -45,7 +35,7 @@
   padding: 0;
   border: 1px solid var(--line-on-light);
   border-radius: 50%;
-  background: rgba(250, 249, 246, 0.92);
+  background: rgba(250, 245, 234, 0.94);
   color: var(--graphite);
   transition:
     background-color 170ms var(--ease),

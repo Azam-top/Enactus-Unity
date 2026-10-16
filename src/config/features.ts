@@ -21,7 +21,11 @@ const submissionEnabled =
   Number.isFinite(retentionDays) &&
   retentionDays >= 1
 
+/** Production origin (no trailing slash). Empty until the owner supplies the domain: no canonical/hreflang is then emitted. */
+const siteUrl = read('VITE_SITE_URL').replace(/\/+$/, '')
+
 export const features = {
+  siteUrl,
   submissionEnabled,
   submissionUrl,
   turnstileSiteKey,

@@ -16,8 +16,44 @@ export function Header({ onShareIdea }: Props) {
   const t = useT()
   const locale = useLocale()
   const [open, setOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const [active, setActive] = useState<string | null>(null)
   const toggleRef = useRef<HTMLButtonElement>(null)
   const onHome = Boolean(onShareIdea)
+
+  // The bar gains its hairline only once the page has moved, so the hero opens on clean paper.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  // Current section (aria-current="location"): the section crossing a band just under the header.
+  useEffect(() => {
+    if (!onHome) return
+    const targets = SECTIONS.map((id) => document.getElementById(id)).filter((el): el is HTMLElement => el !== null)
+    if (!targets.length) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActive(entry.target.id)
+          else setActive((current) => (current === entry.target.id ? null : current))
+        }
+      },
+      { rootMargin: '-35% 0px -55% 0px' },
+    )
+    targets.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [onHome])
+
+  // The open menu locks the page behind it.
+  useEffect(() => {
+    document.documentElement.style.overflow = open ? 'hidden' : ''
+    return () => {
+      document.documentElement.style.overflow = ''
+    }
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -33,7 +69,7 @@ export function Header({ onShareIdea }: Props) {
 
   const sectionLink = (id: string, className: string, label: ReactNode) =>
     onHome ? (
-      <a href={`#${id}`} className={className} onClick={() => setOpen(false)}>
+      <a href={`#${id}`} className={className} aria-current={active === id ? 'location' : undefined} onClick={() => setOpen(false)}>
         {label}
       </a>
     ) : (
@@ -62,10 +98,11 @@ export function Header({ onShareIdea }: Props) {
     )
 
   return (
-    <header className={styles.header}>
+    <header className={styles.header} data-scrolled={scrolled || open}>
       <div className={`container ${styles.bar}`}>
         <Link to={`/${locale}`} className={styles.brand} aria-label={t.a11y.brandHome} onClick={() => window.scrollTo({ top: 0 })}>
-          <span className={styles.brandName}>{t.brand.name}</span> <span className={styles.brandSuffix}>{t.brand.suffix}</span>
+          <span className={styles.brandName}>{t.brand.name}</span>{' '}
+          <span className={styles.brandSuffix}>{t.brand.suffix}</span>
         </Link>
 
         <nav className={styles.nav} aria-label={t.a11y.mainNav}>

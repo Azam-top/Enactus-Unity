@@ -32,7 +32,7 @@ export const en: Dictionary = {
     short: { kk: 'ҚАЗ', ru: 'РУС', en: 'ENG' },
   },
   hero: {
-    label: 'Almaty · KazNU',
+    label: 'Almaty, KazNU',
     title: 'Give your idea wings.',
     support:
       'Enactus KazNU is a student team at Al-Farabi Kazakh National University. We bring together ideas, entrepreneurship and action that is useful to society.',
@@ -42,6 +42,10 @@ export const en: Dictionary = {
       play: 'Play the QANAT animation',
       pause: 'Pause the animation',
       replay: 'Replay the QANAT animation',
+    },
+    scene: {
+      alt: 'Paper-craft illustration: an open book from which a tall university building, mountains and a garden rise. A golden paper bird flies above the book.',
+      caption: 'Illustration',
     },
   },
   participation: {
@@ -283,6 +287,8 @@ export const en: Dictionary = {
     addressLabel: 'University address',
     address: '71 Al-Farabi Avenue, Almaty, Kazakhstan',
     addressNote: 'This is the university address, not a verified office of the team.',
+    imageAlt: 'Paper-craft illustration: a tall university building against mountains and trees.',
+    imageCaption: 'Illustration. Not a photograph or a campus plan.',
   },
   finalAction: {
     title: 'The next project can start with your idea.',

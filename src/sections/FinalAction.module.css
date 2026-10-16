@@ -4,28 +4,26 @@
 
 .panel {
   display: grid;
-  gap: 32px;
+  gap: 40px;
   align-items: center;
-  padding: 32px 24px;
+  padding: 36px 24px 40px;
   background: var(--surface);
-  border: 1px solid var(--line-on-light);
-  border-radius: var(--radius-media);
+  border-radius: 0;
 }
 
 .title {
-  font-size: clamp(1.9rem, 6.5vw, 3.6rem);
-  line-height: 1.08;
+  font-size: clamp(2.4rem, 9vw, 3.3rem);
+  line-height: 1.02;
   letter-spacing: -0.035em;
-  font-weight: 700;
   text-wrap: balance;
-  max-width: 14em;
+  max-width: 13em;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-top: 28px;
+  margin-top: 32px;
 }
 
 .quiet {
@@ -34,37 +32,35 @@
   color: var(--muted-on-light);
 }
 
-.still {
-  width: 104px;
-}
-
-.still img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  border-radius: 18px;
-  border: 1px solid var(--line-on-light);
-  background: #f3ece1;
+.mascot {
+  justify-self: start;
+  width: min(100%, 240px);
+  filter: drop-shadow(0 20px 22px rgba(60, 40, 10, 0.18));
 }
 
 @media (min-width: 768px) {
   .panel {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 48px;
-    padding: 56px 48px;
+    gap: 56px;
+    padding: 64px 56px;
   }
 
-  .still {
-    width: 150px;
+  .title {
+    font-size: clamp(3rem, 5.2vw, 4.8rem);
+  }
+
+  .mascot {
+    justify-self: end;
+    width: 280px;
   }
 }
 
 @media (min-width: 1024px) {
   .panel {
-    padding: 72px 64px;
+    padding: 88px 80px;
   }
 
-  .still {
-    width: 180px;
+  .mascot {
+    width: 340px;
   }
 }

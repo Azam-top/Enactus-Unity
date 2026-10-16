@@ -17,10 +17,9 @@
 
 .title {
   margin-top: 8px;
-  font-size: clamp(2.2rem, 7vw, 3.6rem);
-  line-height: 1.08;
+  font-size: clamp(2.8rem, 9vw, 4.6rem);
+  line-height: 1.02;
   letter-spacing: -0.035em;
-  font-weight: 700;
 }
 
 .section {
@@ -30,9 +29,8 @@
 }
 
 .section h2 {
-  font-size: 22px;
-  line-height: 1.25;
-  font-weight: 700;
+  font-size: 26px;
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 

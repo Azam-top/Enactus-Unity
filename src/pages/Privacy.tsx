@@ -34,7 +34,7 @@ export function Privacy() {
           <Link to={`/${locale}`} className={`link ${styles.back}`}>
             ← {p.back}
           </Link>
-          <p className={`eyebrow ${styles.status}`}>{status}</p>
+          <p className={`tag ${styles.status}`}>{status}</p>
           <h1 className={styles.title}>{p.title}</h1>
           {sections.map((section) => (
             <section key={section.heading} className={styles.section}>

@@ -4,52 +4,67 @@
 
 .grid {
   display: grid;
-  gap: 24px;
-  padding-top: 40px;
-  border-top: 1px solid var(--line-on-light);
+  gap: 40px;
 }
 
-.eyebrow {
-  margin-bottom: 12px;
+.sheet {
+  filter: drop-shadow(0 18px 20px rgba(60, 40, 10, 0.14));
+}
+
+.frame {
+  --fold: 36px;
+  background: var(--paper-deep);
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 940 / 705;
+  object-fit: cover;
+}
+
+.caption {
+  margin-top: 12px;
+  font-size: 14px;
   color: var(--muted-on-light);
 }
 
 .title {
-  font-size: clamp(1.6rem, 5vw, 2.2rem);
-  line-height: 1.15;
+  font-size: var(--title-size);
+  line-height: 1.04;
   letter-spacing: -0.03em;
-  font-weight: 700;
+  text-wrap: balance;
 }
 
 .body {
-  margin-top: 16px;
-  max-width: 36em;
+  margin-top: 20px;
+  max-width: 30em;
   color: var(--muted-on-light);
 }
 
 .link {
-  margin-top: 8px;
+  margin-top: 12px;
   min-height: 44px;
 }
 
 .address {
   display: grid;
   gap: 4px;
-  align-content: start;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-on-light);
   font-style: normal;
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .addressLabel {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--muted-on-light);
 }
 
 .note {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--muted-on-light);
 }
 
@@ -57,14 +72,14 @@
   .grid {
     grid-template-columns: repeat(12, minmax(0, 1fr));
     column-gap: 24px;
+    align-items: center;
   }
 
-  .grid > div {
-    grid-column: 1 / 8;
+  .figure {
+    grid-column: 1 / 7;
   }
 
-  .address {
-    grid-column: 9 / 13;
-    padding-top: 28px;
+  .text {
+    grid-column: 8 / 13;
   }
 }

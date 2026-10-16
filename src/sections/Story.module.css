@@ -4,84 +4,115 @@
 
 .grid {
   display: grid;
-  gap: 40px;
-  padding-top: 8px;
+  gap: 48px;
+  padding-top: 24px;
 }
 
-.eyebrow {
-  margin-bottom: 16px;
-  color: var(--muted-on-light);
+.head {
+  display: grid;
+  gap: 16px;
 }
 
 .lead {
-  margin-top: 16px;
-  max-width: 30em;
+  max-width: 24em;
   color: var(--muted-on-light);
 }
 
 .timeline {
   position: relative;
-  margin: 0;
-  padding-left: 28px;
 }
 
-.timeline::before {
-  content: '';
+.list {
+  padding-left: 40px;
+}
+
+/* The rail is a faint track; the gold line over it is drawn by the scroll. */
+.rail {
   position: absolute;
-  left: 5px;
-  top: 8px;
-  bottom: 8px;
+  left: 7px;
+  top: 12px;
+  bottom: 12px;
   width: 2px;
+  background: var(--line-on-light);
+}
+
+.line {
+  position: absolute;
+  inset: 0;
   background: var(--gold);
+  transform-origin: top;
 }
 
 .item {
   position: relative;
-  padding-bottom: 40px;
+  padding-bottom: 56px;
 }
 
 .item:last-child {
   padding-bottom: 0;
 }
 
-.item::before {
-  content: '';
+.marker {
   position: absolute;
-  left: -28px;
-  top: 6px;
-  width: 12px;
-  height: 12px;
+  left: -40px;
+  top: 8px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--paper);
   border: 2px solid var(--graphite);
+  transition: background-color 320ms var(--ease);
+}
+
+.passed .marker {
+  background: var(--gold);
 }
 
 .date {
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--muted-on-light);
 }
 
 .itemTitle {
-  margin-top: 6px;
-  font-size: 24px;
-  line-height: 1.2;
+  margin-top: 8px;
+  font-size: clamp(1.7rem, 5.6vw, 2.2rem);
+  line-height: 1.12;
   letter-spacing: -0.02em;
-  font-weight: 700;
 }
 
 .text {
-  margin-top: 10px;
-  max-width: 36em;
-  font-size: 16px;
+  margin-top: 12px;
+  max-width: 34em;
+  font-size: 17px;
   color: var(--muted-on-light);
 }
 
 .source {
-  margin-top: 8px;
+  margin-top: 10px;
   min-height: 44px;
   font-size: 15px;
+}
+
+@media (min-width: 768px) {
+  .grid {
+    gap: 64px;
+  }
+
+  .list {
+    padding-left: 56px;
+  }
+
+  .rail {
+    left: 11px;
+  }
+
+  .marker {
+    left: -56px;
+    top: 10px;
+    width: 22px;
+    height: 22px;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -94,7 +125,7 @@
     grid-column: 1 / 5;
     align-self: start;
     position: sticky;
-    top: calc(var(--header-h) + 32px);
+    top: calc(var(--header-h) + 40px);
   }
 
   .timeline {

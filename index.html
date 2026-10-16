@@ -8,16 +8,45 @@
       name="description"
       content="Enactus KazNU — студенческая команда КазНУ имени аль-Фараби. Объединяем идеи, предпринимательство и действия с пользой для общества."
     />
-    <meta name="theme-color" content="#F0EFEC" />
+    <meta name="theme-color" content="#F4EAD7" />
+    <meta name="color-scheme" content="light" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Enactus KazNU" />
     <meta property="og:title" content="Enactus KazNU — Идеяңа қанат бер" />
     <meta property="og:description" content="Enactus KazNU — әл-Фараби атындағы ҚазҰУ студенттерінің командасы." />
     <meta property="og:locale" content="kk_KZ" />
-    <!-- og:url, og:image (absolute URL), canonical and hreflang are added when the real production domain is known. -->
-    <!-- The hero poster is the largest paint: start fetching it with the HTML, not after the JS has run. -->
-    <link rel="preload" as="image" href="/media/qanat-poster.webp" type="image/webp" fetchpriority="high" />
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070D0D'/%3E%3Cpath d='M7 20 17 7l-2 9 10 2-12 8 2-6z' fill='%23FFC222'/%3E%3C/svg%3E" />
+    <!-- og:url, og:image (absolute URL), canonical, hreflang and sitemap.xml are added at build time when VITE_SITE_URL is set (see docs/LAUNCH-CHECKLIST.md). -->
+    <!-- First paint: the two text faces (Latin + Cyrillic) and the hero illustration are the largest requests. Fetch them with the HTML. -->
+    <link
+      rel="preload"
+      as="image"
+      media="(max-width: 767px)"
+      imagesrcset="/media/popup-scene-m-640.webp 640w, /media/popup-scene-m-800.webp 800w, /media/popup-scene-m.webp 1100w"
+      imagesizes="100vw"
+      type="image/webp"
+      fetchpriority="high"
+    />
+    <link
+      rel="preload"
+      as="image"
+      media="(min-width: 768px)"
+      imagesrcset="/media/popup-scene-760.webp 760w, /media/popup-scene-1100.webp 1100w, /media/popup-scene-1672.webp 1672w"
+      imagesizes="(min-width: 1024px) 70vw, 100vw"
+      type="image/webp"
+      fetchpriority="high"
+    />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230D1311'/%3E%3Cpath d='M7 20 17 7l-2 9 10 2-12 8 2-6z' fill='%23FFC222'/%3E%3C/svg%3E" />
+    <!-- Structured data: only source-backed facts (brief §2). No URL, contacts, people or metrics. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Enactus KazNU",
+        "foundingDate": "2015-09-15",
+        "parentOrganization": { "@type": "CollegeOrUniversity", "name": "Al-Farabi Kazakh National University", "url": "https://farabi.university/" },
+        "sameAs": ["https://www.instagram.com/kaznu_enact.us/"]
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -28,20 +28,31 @@ export function Mascot({ videoRef: externalRef }: Props) {
     else if (externalRef) (externalRef as { current: HTMLVideoElement | null }).current = node
   }
 
-  // Scrub mode needs the whole file, so fetch it once the page is idle — text and poster render first.
+  // Scrub mode needs the whole file. QANAT lives at the end of the page, so fetch it only when the visitor
+  // is within about a screen and a half of it — text and poster render first, and nobody pays for it up front.
   useEffect(() => {
     const video = innerRef.current
-    if (!scrub || !video) return
+    const frame = frameRef.current
+    if (!scrub || !video || !frame) return
     const load = () => {
       video.preload = 'auto'
       video.load()
     }
-    if ('requestIdleCallback' in window) {
-      const id = window.requestIdleCallback(load, { timeout: 2500 })
-      return () => window.cancelIdleCallback(id)
+    if (!('IntersectionObserver' in window)) {
+      load()
+      return
     }
-    const id = setTimeout(load, 1200)
-    return () => clearTimeout(id)
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          load()
+          io.disconnect()
+        }
+      },
+      { rootMargin: '1400px 0px' },
+    )
+    io.observe(frame)
+    return () => io.disconnect()
   }, [scrub])
 
   // Manual mode: pause when offscreen or the tab is hidden.
@@ -79,7 +90,7 @@ export function Mascot({ videoRef: externalRef }: Props) {
   const label = ended ? t.hero.media.replay : playing ? t.hero.media.pause : t.hero.media.play
 
   return (
-    <div className={styles.frame} ref={frameRef} data-mascot-mode={scrub ? 'scrub' : 'manual'}>
+    <div className={`fold ${styles.frame}`} ref={frameRef} data-mascot-mode={scrub ? 'scrub' : 'manual'}>
       <div className={styles.media} aria-hidden="true">
         <video
           ref={setVideo}

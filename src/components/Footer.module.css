@@ -1,16 +1,38 @@
+/* The footer is the same cut paper as the Projects chapter, seen from below: a ridge along its top edge. */
 .footer {
+  --ridge: 36px;
+  position: relative;
+  overflow: hidden;
   background: var(--graphite);
   color: var(--paper);
-  padding-block: 56px 48px;
+  padding-block: calc(var(--ridge) + 56px) 40px;
+  clip-path: polygon(
+    0 calc(var(--ridge) * 0.7),
+    8% calc(var(--ridge) * 0.3),
+    14% calc(var(--ridge) * 0.6),
+    23% calc(var(--ridge) * 0.1),
+    31% calc(var(--ridge) * 0.5),
+    42% 0,
+    50% calc(var(--ridge) * 0.55),
+    61% calc(var(--ridge) * 0.2),
+    70% calc(var(--ridge) * 0.7),
+    79% calc(var(--ridge) * 0.35),
+    89% calc(var(--ridge) * 0.8),
+    100% calc(var(--ridge) * 0.4),
+    100% 100%,
+    0 100%
+  );
 }
 
 .grid {
+  position: relative;
+  z-index: 1;
   display: grid;
   gap: 40px;
 }
 
 .brand {
-  font-size: 22px;
+  font-size: 24px;
   letter-spacing: -0.02em;
 }
 
@@ -18,10 +40,16 @@
   font-weight: 700;
 }
 
+.brandSuffix {
+  font-family: var(--font-display);
+  font-weight: 400;
+  color: var(--muted-on-dark);
+}
+
 .tagline {
   margin-top: 8px;
   max-width: 24em;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--muted-on-dark);
 }
 
@@ -35,10 +63,8 @@
 }
 
 .colTitle {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--muted-on-dark);
 }
 
@@ -50,7 +76,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  font-size: 16px;
+  font-size: 17px;
 }
 
 .lang {
@@ -104,11 +130,37 @@
 }
 
 .systemNote {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--muted-on-dark);
 }
 
+/* Large wordmark cropped by the bottom edge: a signature, not content (hidden from assistive tech). */
+.mark {
+  position: relative;
+  z-index: 0;
+  margin-top: 56px;
+  margin-bottom: -0.2em;
+  font-family: var(--font-display);
+  font-size: clamp(3.4rem, 13.4vw, 15rem);
+  line-height: 0.8;
+  letter-spacing: -0.05em;
+  white-space: nowrap;
+  color: rgba(241, 231, 212, 0.07);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* Drawn as generated content so it is a picture of a name, not a second copy of the text. */
+.mark::before {
+  content: attr(data-text);
+  padding-inline: var(--pad-x);
+}
+
 @media (min-width: 768px) {
+  .footer {
+    --ridge: 48px;
+  }
+
   .grid {
     grid-template-columns: 1.4fr 1fr 1fr;
     gap: 48px;

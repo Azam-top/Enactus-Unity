@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { useT } from '../content/LocaleContext'
 import { useMotion } from '../motion/MotionContext'
-import { setupReveal } from '../motion/motion'
+import { prefersSaveData, setupFinalMotion } from '../motion/motion'
 import { links } from '../config/links'
 import { Icon } from '../components/Icon'
+import { Mascot } from '../components/Mascot'
 import styles from './FinalAction.module.css'
 
 type Props = { onShareIdea: () => void; onCollaborate: () => void }
@@ -13,14 +14,22 @@ export function FinalAction({ onShareIdea, onCollaborate }: Props) {
   const f = t.finalAction
   const { reduced } = useMotion()
   const ref = useRef<HTMLElement>(null)
+  const frameRef = useRef<HTMLDivElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-  useEffect(() => (ref.current ? setupReveal(ref.current, !reduced) : undefined), [reduced])
+  useLayoutEffect(() => {
+    if (!ref.current || !frameRef.current) return
+    return setupFinalMotion(
+      { section: ref.current, frame: frameRef.current, video: videoRef.current },
+      { allowMotion: !reduced, scrubVideo: !reduced && !prefersSaveData() },
+    )
+  }, [reduced])
 
   return (
     <section id="contact" className={styles.section} ref={ref} aria-labelledby="contact-title">
       <div className="container">
-        <div className={styles.panel}>
-          <div className={styles.text} data-reveal>
+        <div className={`fold ${styles.panel}`}>
+          <div className={styles.text}>
             <h2 id="contact-title" className={styles.title}>
               {f.title}
             </h2>
@@ -54,9 +63,9 @@ export function FinalAction({ onShareIdea, onCollaborate }: Props) {
             </a>
           </div>
 
-          {/* QANAT "arrives": the last frame of the supplied video, a short settle, no claim of a real landing. */}
-          <div className={styles.still} data-settle aria-hidden="true">
-            <img src="/media/qanat-landing.webp" width={384} height={384} loading="lazy" decoding="async" alt="" />
+          {/* QANAT: the supplied video, driven by scroll through this section — it "arrives" as the page ends. */}
+          <div className={styles.mascot} ref={frameRef}>
+            <Mascot videoRef={videoRef} />
           </div>
         </div>
       </div>

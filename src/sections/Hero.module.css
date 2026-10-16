@@ -1,29 +1,47 @@
 .hero {
-  padding-block: 40px var(--section-y);
+  position: relative;
+  overflow-x: clip;
+  padding-block: 24px 48px;
 }
 
 .grid {
-  display: grid;
-  gap: 40px;
+  position: relative;
+  z-index: 2;
 }
 
 .label {
-  color: var(--muted-on-light);
+  display: flex;
+  align-items: center;
+  gap: 14px;
   margin-bottom: 20px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted-on-light);
+  text-shadow: 0 0 10px var(--paper);
+}
+
+/* A short gold rule: the one decorative mark in the hero, echoing the road in the illustration. */
+.label::before {
+  content: '';
+  width: 36px;
+  height: 3px;
+  background: var(--gold);
 }
 
 .title {
-  font-size: clamp(2.4rem, 10vw, 3.4rem);
-  line-height: 1.08;
-  letter-spacing: -0.04em;
-  font-weight: 700;
+  font-size: clamp(3.8rem, 17.5vw, 5.4rem);
+  line-height: 0.96;
+  letter-spacing: -0.035em;
   text-wrap: balance;
 }
 
 .support {
   margin-top: 24px;
-  max-width: 34em;
+  max-width: 25em;
+  text-wrap: pretty;
   color: var(--muted-on-light);
+  /* The artwork fades in behind the end of the column: a paper halo keeps the words clean over it. */
+  text-shadow: 0 0 10px var(--paper), 0 0 22px var(--paper);
 }
 
 .actions {
@@ -33,58 +51,120 @@
   margin-top: 32px;
 }
 
-.visual {
-  display: flex;
-  justify-content: flex-start;
+.actions :global(.btn--ghost) {
+  background: color-mix(in srgb, var(--paper) 78%, transparent);
 }
 
-/* Animated wrappers must span the column, otherwise the percentage-width frame collapses to 0. */
-.layer {
-  display: flex;
-  justify-content: inherit;
+/* ---- Stage: the illustration. Phones get a tighter crop (tower, garden, bird), not the same picture shrunk. ---- */
+.stage {
+  position: relative;
+  margin-top: 28px;
+  pointer-events: none;
+}
+
+.scene {
+  position: relative;
+  aspect-ratio: 1100 / 740;
+  /* Bird position in the crop, as fractions of the scene box. */
+  --bird-x: 77.7%;
+  --bird-y: 3.6%;
+  --bird-w: 19.4%;
+}
+
+.art {
   width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* The artwork's own backdrop is cream: feather every edge into the page so no rectangle shows. */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent),
+    linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent),
+    linear-gradient(to bottom, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.bird {
+  position: absolute;
+  left: var(--bird-x);
+  top: var(--bird-y);
+  width: var(--bird-w);
+  height: auto;
+  aspect-ratio: 213 / 208;
+  filter: drop-shadow(0 10px 14px rgba(120, 80, 10, 0.22));
+  will-change: transform;
+}
+
+.caption {
+  position: absolute;
+  left: var(--pad-x);
+  bottom: 4px;
+  font-size: 13px;
+  color: var(--muted-on-light);
 }
 
 @media (min-width: 768px) {
   .hero {
-    padding-top: 64px;
-  }
-
-  .grid {
-    grid-template-columns: minmax(0, 1fr) 300px;
-    gap: 32px;
-    align-items: center;
+    padding-block: 40px 64px;
   }
 
   .title {
-    font-size: clamp(3.1rem, 6.2vw, 6rem);
-    line-height: 1.04;
+    font-size: clamp(5rem, 11vw, 8rem);
   }
 
-  .visual {
-    justify-content: flex-end;
+  .scene {
+    aspect-ratio: 1672 / 941;
+    --bird-x: 73.9%;
+    --bird-y: 12.4%;
+    --bird-w: 12.7%;
+  }
+
+  .caption {
+    bottom: 10px;
   }
 }
 
 @media (min-width: 1024px) {
   .hero {
-    min-height: calc(100svh - var(--header-h));
     display: flex;
     align-items: center;
-    padding-block: 72px;
+    min-height: calc(100svh - var(--header-h));
+    padding-block: 32px 48px;
   }
 
   .grid {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
-    column-gap: 24px;
     width: 100%;
   }
 
   .text {
-    grid-column: 1 / 8;
+    max-width: 600px;
   }
 
-  .visual {
-    grid-column: 8 / 13;
+  .title {
+    font-size: clamp(5.4rem, 8.4vw, 8rem);
+  }
+
+  /* The book bleeds off the right edge and rises behind the end of the text column. */
+  .stage {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    z-index: 1;
+    width: min(70vw, 1400px);
+    margin: 0;
+    transform: translateY(-46%);
+  }
+
+  .art {
+    -webkit-mask-image: linear-gradient(to right, transparent 6%, #000 36%, #000 93%, transparent),
+      linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(to right, transparent 6%, #000 36%, #000 93%, transparent),
+      linear-gradient(to bottom, transparent, #000 12%, #000 88%, transparent);
+  }
+
+  .caption {
+    left: auto;
+    right: var(--pad-x);
+    bottom: 16px;
   }
 }

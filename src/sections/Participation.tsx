@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useT } from '../content/LocaleContext'
-import { useMotion } from '../motion/MotionContext'
-import { setupReveal } from '../motion/motion'
+import { Icon, type IconName } from '../components/Icon'
 import { CollabForm } from '../components/forms/CollabForm'
 import { IdeaForm } from '../components/forms/IdeaForm'
 import { JoinForm } from '../components/forms/JoinForm'
@@ -19,18 +18,12 @@ type Props = {
 }
 
 const PATHS: PathId[] = ['idea', 'join', 'collab']
+const ICONS: Record<PathId, IconName> = { idea: 'plane', join: 'hands', collab: 'link' }
 
 export function Participation({ selected, onSelect, focusToken, contextTag, onClearContext }: Props) {
   const t = useT()
   const p = t.participation
-  const { reduced } = useMotion()
-  const sectionRef = useRef<HTMLElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!sectionRef.current) return
-    return setupReveal(sectionRef.current, !reduced)
-  }, [reduced])
 
   useEffect(() => {
     if (focusToken === 0 || !selected) return
@@ -39,9 +32,9 @@ export function Participation({ selected, onSelect, focusToken, contextTag, onCl
 
   // All three forms stay mounted (inactive ones are hidden), so switching paths or language never loses input.
   return (
-    <section id="participate" className={styles.section} ref={sectionRef} aria-labelledby="participate-title">
+    <section id="participate" className={styles.section} aria-labelledby="participate-title">
       <div className="container">
-        <div className={styles.head} data-reveal>
+        <div className={styles.head}>
           <h2 id="participate-title" className="section-title">
             {p.title}
           </h2>
@@ -53,7 +46,7 @@ export function Participation({ selected, onSelect, focusToken, contextTag, onCl
             const path = p.paths[id]
             const isOn = selected === id
             return (
-              <li key={id} data-reveal>
+              <li key={id}>
                 <button
                   type="button"
                   className={styles.path}
@@ -61,9 +54,14 @@ export function Participation({ selected, onSelect, focusToken, contextTag, onCl
                   aria-controls="participation-panel"
                   onClick={() => onSelect(isOn ? null : id)}
                 >
-                  <span className={styles.number}>{path.number}</span>
+                  <span className={styles.icon}>
+                    <Icon name={ICONS[id]} size={26} />
+                  </span>
                   <span className={styles.pathLabel}>{path.label}</span>
                   <span className={styles.pathHint}>{path.hint}</span>
+                  <span className={styles.go} aria-hidden="true">
+                    <Icon name="arrow" size={20} />
+                  </span>
                 </button>
               </li>
             )
@@ -71,7 +69,7 @@ export function Participation({ selected, onSelect, focusToken, contextTag, onCl
         </ol>
 
         <div id="participation-panel" className={styles.panelWrap} hidden={!selected} ref={panelRef}>
-          <div className={styles.panel}>
+          <div className={`fold ${styles.panel}`}>
             <div data-form="idea" hidden={selected !== 'idea'}>
               <IdeaForm contextTag={contextTag} onClearContext={onClearContext} active={selected === 'idea'} />
             </div>

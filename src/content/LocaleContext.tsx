@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'r
 import type { Dictionary } from './ru'
 import { dictionaries } from './locales'
 import type { Locale } from '../shared/validation'
+import { features } from '../config/features'
 
 type LocaleValue = { locale: Locale; t: Dictionary }
 
@@ -20,6 +21,12 @@ export function LocaleProvider({ locale, children }: { locale: Locale; children:
     document.querySelector('meta[property="og:title"]')?.setAttribute('content', value.t.meta.title)
     document.querySelector('meta[property="og:description"]')?.setAttribute('content', value.t.meta.description)
     document.querySelector('meta[property="og:locale"]')?.setAttribute('content', OG_LOCALE[value.locale])
+    // With a production origin configured, point canonical and og:url at this language (the static default is /kk).
+    if (features.siteUrl) {
+      const url = `${features.siteUrl}/${value.locale}`
+      document.querySelector('link[rel="canonical"]')?.setAttribute('href', url)
+      document.querySelector('meta[property="og:url"]')?.setAttribute('content', url)
+    }
   }, [value])
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>

@@ -1,7 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
-import '@fontsource-variable/noto-sans/wght.css'
+import './styles/fonts.css'
 import './styles/global.css'
 import { LocaleProvider } from './content/LocaleContext'
 import { DEFAULT_LOCALE, isLocale } from './content/locales'

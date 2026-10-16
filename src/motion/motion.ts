@@ -48,97 +48,159 @@ function createVideoScrubber(video: HTMLVideoElement) {
   }
 }
 
-type HeroTargets = { hero: HTMLElement; intro: HTMLElement; scene: HTMLElement; video: HTMLVideoElement | null }
+type HeroTargets = { hero: HTMLElement; scene: HTMLElement; bird: HTMLElement }
 
 /**
- * Hero scene. Entrance runs once; then the real scroll position drives both the bird's motion
- * (≥768px: a slow, small drift up and right inside its own column, then fades out) and, when allowed, the
- * video frames — down plays forward, up plays backward, never faster than real time. Everything is reversible and nothing hijacks scrolling.
+ * Hero scene. The book is still; only the golden bird moves, in two moves:
+ *  1. once, on load: it glides in from behind the ridge and settles where the illustration put it;
+ *  2. with the real scroll position (reversible, never faster than the visitor): it lifts away up and to the right
+ *     inside the empty sky, while the book drifts a few pixels slower than the page.
+ * Text and CTAs never wait for any of this and never move.
  */
-export function setupHeroMotion(targets: HeroTargets, opts: { allowMotion: boolean; scrubVideo: boolean }): () => void {
+export function setupHeroMotion(targets: HeroTargets, opts: { allowMotion: boolean }): () => void {
   if (!opts.allowMotion) return () => undefined
-  const { hero, intro, scene, video } = targets
+  const { hero, scene, bird } = targets
   const mm = gsap.matchMedia()
 
   mm.add({ wide: '(min-width: 1024px)', mid: '(min-width: 768px) and (max-width: 1023px)', phone: '(max-width: 767px)' }, (ctx) => {
     const { wide, mid } = ctx.conditions as Record<string, boolean>
+    const reach = wide ? 1 : mid ? 0.7 : 0.45
 
-    gsap.from(intro, { opacity: 0, y: 16, scale: 0.98, duration: 0.7, ease: 'power2.out', clearProps: 'transform,opacity' })
-
-    const scrubber = opts.scrubVideo && video ? createVideoScrubber(video) : null
-    const state = { p: 0 }
-
-    const tl = gsap.timeline({
-      defaults: { ease: 'none' },
-      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 1 },
+    gsap.from(bird, {
+      x: -90 * reach,
+      y: 70 * reach,
+      scale: 0.72,
+      rotation: 9,
+      opacity: 0,
+      duration: 1.7,
+      delay: 0.35,
+      ease: 'power3.out',
+      clearProps: 'transform,opacity',
     })
 
-    if (scrubber) tl.to(state, { p: 1, duration: 0.9, onUpdate: () => scrubber.set(state.p) }, 0)
+    // The scroll timeline owns the bird's transform once the entrance has finished (clearProps hands it over).
+    const tl = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.8 },
+    })
+    tl.to(bird, { xPercent: 60 * reach, yPercent: -90 * reach, scale: 0.8, rotation: -7, opacity: 0, duration: 1, ease: 'power1.in' }, 0)
+    tl.to(scene, { yPercent: -3, duration: 1 }, 0)
+  })
 
-    if (wide || mid) {
-      const k = wide
-        ? [
-            { xPercent: 2, yPercent: -3, scale: 0.99, rotation: -1, opacity: 1 },
-            { xPercent: 5, yPercent: -10, scale: 0.92, rotation: -2.5, opacity: 0.95 },
-            { xPercent: 8, yPercent: -18, scale: 0.8, rotation: -4, opacity: 0 },
-          ]
-        : [
-            { xPercent: 1, yPercent: -2, scale: 0.99, rotation: -0.5, opacity: 1 },
-            { xPercent: 3, yPercent: -7, scale: 0.94, rotation: -2, opacity: 0.95 },
-            { xPercent: 5, yPercent: -12, scale: 0.86, rotation: -3, opacity: 0 },
-          ]
-      tl.to(scene, { ...k[0], duration: 0.25 }, 0)
-        .to(scene, { ...k[1], duration: 0.4 }, 0.25)
-        .to(scene, { ...k[2], duration: 0.25 }, 0.65)
-    }
+  return () => mm.revert()
+}
 
+/**
+ * Closing scene: the supplied QANAT video plays with the scroll through this section (down = forward, up = backward,
+ * never faster than real time) while its frame settles into place. Scroll position sets the frame, nothing autoplays.
+ */
+export function setupFinalMotion(
+  targets: { section: HTMLElement; frame: HTMLElement; video: HTMLVideoElement | null },
+  opts: { allowMotion: boolean; scrubVideo: boolean },
+): () => void {
+  if (!opts.allowMotion) return () => undefined
+  const { section, frame, video } = targets
+  const mm = gsap.matchMedia()
+
+  mm.add('(min-width: 0px)', () => {
+    const scrubber = opts.scrubVideo && video ? createVideoScrubber(video) : null
+    const state = { p: 0 }
+    const tl = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: { trigger: section, start: 'top 85%', end: 'bottom 70%', scrub: 1 },
+    })
+    if (scrubber) tl.to(state, { p: 1, duration: 1, onUpdate: () => scrubber.set(state.p) }, 0)
+    tl.fromTo(frame, { yPercent: 6, rotation: 1.2 }, { yPercent: 0, rotation: 0, duration: 0.6 }, 0)
     return () => scrubber?.destroy()
   })
 
   return () => mm.revert()
 }
 
-/** Projects: the dark chapter grows from an inset panel into a full-width band over ~220px of scroll. */
-export function setupChapterExpand(section: HTMLElement, layer: HTMLElement, allowMotion: boolean): () => void {
-  if (!allowMotion) return () => undefined
+/**
+ * Projects: paper-cut ridge layers behind the dark chapter move at slightly different speeds as it passes —
+ * depth, like the layers of a pop-up page. Decorative only (aria-hidden), small travel, reversible.
+ */
+export function setupRidgeParallax(section: HTMLElement, layers: HTMLElement[], allowMotion: boolean): () => void {
+  if (!allowMotion || !layers.length) return () => undefined
   const mm = gsap.matchMedia()
-
   mm.add('(min-width: 768px)', () => {
-    gsap.fromTo(
-      layer,
-      { scaleX: 0.94, borderRadius: 24 },
-      {
-        scaleX: 1,
-        borderRadius: 0,
-        ease: 'none',
-        scrollTrigger: { trigger: section, start: 'top bottom', end: 'top bottom-=220', scrub: 0.2 },
-      },
-    )
+    layers.forEach((layer, i) => {
+      gsap.fromTo(
+        layer,
+        { y: 40 + i * 28 },
+        {
+          y: -(40 + i * 28),
+          ease: 'none',
+          scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: 0.6 },
+        },
+      )
+    })
   })
-
   return () => mm.revert()
 }
 
 /**
- * Quiet reveal for [data-reveal] (rise 18px) and [data-settle] (a 10px "arrival" settle).
- * Content is never hidden when motion is reduced.
+ * Story: the gold line draws down as the timeline is read, and each milestone's marker fills once passed.
+ * All dates, texts and links are plain content that is visible and reachable whether or not this runs.
  */
-export function setupReveal(scope: HTMLElement, allowMotion: boolean): () => void {
+export function setupTimelineDraw(
+  scope: HTMLElement,
+  line: HTMLElement,
+  items: HTMLElement[],
+  passedClass: string,
+  allowMotion: boolean,
+): () => void {
+  if (!allowMotion) {
+    items.forEach((el) => el.classList.add(passedClass))
+    return () => undefined
+  }
+  const ctx = gsap.context(() => {
+    gsap.fromTo(
+      line,
+      { scaleY: 0 },
+      {
+        scaleY: 1,
+        ease: 'none',
+        transformOrigin: 'top',
+        scrollTrigger: { trigger: scope, start: 'top 60%', end: 'bottom 60%', scrub: 0.4 },
+      },
+    )
+    items.forEach((el) =>
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top 62%',
+        onEnter: () => el.classList.add(passedClass),
+        onLeaveBack: () => el.classList.remove(passedClass),
+      }),
+    )
+  }, scope)
+  return () => {
+    ctx.revert()
+    items.forEach((el) => el.classList.remove(passedClass))
+  }
+}
+
+/**
+ * [data-unfold]: a photograph or illustration is revealed once, as if a folded sheet opened from its bottom edge.
+ * Never applied to text. If this does not run, the picture is simply there.
+ */
+export function setupUnfold(scope: HTMLElement, allowMotion: boolean): () => void {
   if (!allowMotion) return () => undefined
   const ctx = gsap.context(() => {
-    const batch = (selector: string, y: number, duration: number) => {
-      const items = gsap.utils.toArray<HTMLElement>(selector, scope)
-      if (!items.length) return
-      gsap.set(items, { opacity: 0, y })
-      ScrollTrigger.batch(items, {
-        start: 'top 90%',
-        once: true,
-        onEnter: (els) =>
-          gsap.to(els, { opacity: 1, y: 0, duration, ease: 'power2.out', stagger: 0.07, clearProps: 'transform,opacity' }),
-      })
-    }
-    batch('[data-reveal]', 18, 0.55)
-    batch('[data-settle]', 10, 0.45)
+    gsap.utils.toArray<HTMLElement>('[data-unfold]', scope).forEach((el) => {
+      gsap.fromTo(
+        el,
+        { clipPath: 'inset(0% 0% 100% 0%)' },
+        {
+          clipPath: 'inset(0% 0% 0% 0%)',
+          duration: 1.1,
+          ease: 'power3.out',
+          clearProps: 'clipPath',
+          scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+        },
+      )
+    })
   }, scope)
   return () => ctx.revert()
 }

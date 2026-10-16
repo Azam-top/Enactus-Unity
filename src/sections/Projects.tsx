@@ -4,24 +4,30 @@ import { links } from '../config/links'
 import { Icon } from '../components/Icon'
 import { Disclosure } from '../components/Disclosure'
 import { useMotion } from '../motion/MotionContext'
-import { setupChapterExpand, setupReveal } from '../motion/motion'
+import { setupRidgeParallax } from '../motion/motion'
 import styles from './Projects.module.css'
 
 type Props = { onDiscuss: (contextTag: string) => void }
+
+// Paper-cut ridge silhouettes (the Alatau layers of the illustration). Decorative, three depths.
+const RIDGES = [
+  'M0 300V150L90 96L170 140L260 60L350 126L450 40L540 112L650 70L740 150L850 52L960 120L1060 78L1160 140L1260 90L1350 130L1440 100V300Z',
+  'M0 300V190L110 140L210 176L330 108L430 170L560 120L660 184L790 112L900 176L1020 130L1130 190L1250 134L1340 170L1440 140V300Z',
+  'M0 300V232L120 196L240 224L380 170L500 218L640 184L760 228L900 178L1030 226L1160 192L1290 226L1440 196V300Z',
+]
 
 export function Projects({ onDiscuss }: Props) {
   const t = useT()
   const p = t.projects
   const sectionRef = useRef<HTMLElement>(null)
-  const layerRef = useRef<HTMLDivElement>(null)
+  const ridgeRefs = useRef<(HTMLDivElement | null)[]>([])
   const { reduced } = useMotion()
 
   useLayoutEffect(() => {
     const section = sectionRef.current
-    const layer = layerRef.current
-    if (!section || !layer) return
-    const cleanups = [setupChapterExpand(section, layer, !reduced), setupReveal(section, !reduced)]
-    return () => cleanups.forEach((fn) => fn())
+    if (!section) return
+    const layers = ridgeRefs.current.filter((el): el is HTMLDivElement => el !== null)
+    return setupRidgeParallax(section, layers, !reduced)
   }, [reduced])
 
   const external = (href: string, text: string) => (
@@ -34,56 +40,67 @@ export function Projects({ onDiscuss }: Props) {
 
   return (
     <section id="projects" className={`on-dark ${styles.section}`} ref={sectionRef} aria-labelledby="projects-title">
-      <div className={styles.layer} ref={layerRef} aria-hidden="true" />
-      <div className="container">
-        <header className={styles.head} data-reveal>
-          <p className={`eyebrow ${styles.eyebrow}`}>{p.eyebrow}</p>
+      <div className={styles.backdrop} aria-hidden="true">
+        {RIDGES.map((d, i) => (
+          <div key={i} className={styles.ridge} ref={(el) => void (ridgeRefs.current[i] = el)} data-depth={i}>
+            <svg viewBox="0 0 1440 300" preserveAspectRatio="none" focusable="false">
+              <path d={d} />
+            </svg>
+          </div>
+        ))}
+      </div>
+
+      <div className={`container ${styles.content}`}>
+        <header className={styles.head}>
           <h2 id="projects-title" className="section-title">
             {p.title}
           </h2>
           <p className={styles.lead}>{p.lead}</p>
         </header>
 
-        <article className={styles.featured} aria-labelledby="case-asyl-zher" data-reveal>
-          <div className={styles.featuredMain}>
-            <p className={`eyebrow ${styles.tag}`}>{p.featured.tag}</p>
-            <h3 id="case-asyl-zher" className={styles.caseName}>
-              {p.featured.name}
-            </h3>
-            <p className={styles.caseBody}>{p.featured.body}</p>
+        <article className={styles.featured} aria-labelledby="case-asyl-zher">
+          <p className={`tag ${styles.tag}`}>{p.featured.tag}</p>
+          <h3 id="case-asyl-zher" className={styles.caseName}>
+            {p.featured.name}
+          </h3>
 
-            <div className={styles.disclosureWrap}>
-              <Disclosure title={p.featured.disclosure}>
-                <div className={styles.disclosureBody}>
-                  {p.featured.disclosureBody.map((line) => (
-                    <p key={line}>{line}</p>
-                  ))}
-                </div>
-              </Disclosure>
+          <div className={styles.caseGrid}>
+            <div className={styles.caseMain}>
+              <p className={styles.caseBody}>{p.featured.body}</p>
+
+              <div className={styles.disclosureWrap}>
+                <Disclosure title={p.featured.disclosure}>
+                  <div className={styles.disclosureBody}>
+                    {p.featured.disclosureBody.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+                </Disclosure>
+              </div>
+
+              <div className={styles.caseActions}>
+                <button type="button" className="btn btn--primary" onClick={() => onDiscuss(p.featured.contextTag)}>
+                  {p.featured.discuss}
+                  <Icon name="arrow" size={18} />
+                </button>
+                {external(links.sources.asylZher, p.featured.source)}
+              </div>
             </div>
 
-            <div className={styles.caseActions}>
-              <button type="button" className="btn btn--primary" onClick={() => onDiscuss(p.featured.contextTag)}>
-                {p.featured.discuss}
-                <Icon name="arrow" size={18} />
-              </button>
-              {external(links.sources.asylZher, p.featured.source)}
-            </div>
+            <aside className={styles.facts} aria-label={p.featured.factsTitle}>
+              <dl>
+                {p.featured.facts.map((fact) => (
+                  <div key={fact.term} className={styles.fact}>
+                    <dt>{fact.term}</dt>
+                    <dd>{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </aside>
           </div>
-
-          <aside className={styles.facts} aria-label={p.featured.factsTitle}>
-            <dl>
-              {p.featured.facts.map((fact) => (
-                <div key={fact.term} className={styles.fact}>
-                  <dt>{fact.term}</dt>
-                  <dd>{fact.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </aside>
         </article>
 
-        <div className={styles.archive} data-reveal>
+        <div className={styles.archive}>
           <div className={styles.archiveHead}>
             <h3 className={styles.archiveTitle}>{p.archive.title}</h3>
             <p className={styles.archiveNote}>{p.archive.note}</p>

@@ -1,23 +1,37 @@
+/*
+  Design language: a paper-craft pop-up book. Warm paper, one graphite ink, one gold accent.
+  Display = Literata (a book face, optical size follows the font size); text and UI = Onest.
+  Both carry the full Kazakh alphabet (Ә Ғ Қ Ң Ө Ұ Ү Һ І). Structural devices (folded corners, the ridge edge)
+  repeat the illustration instead of decorating at random.
+*/
 :root {
-  --paper: #f0efec;
-  --surface: #faf9f6;
-  --graphite: #070d0d;
-  --graphite-soft: #131a19;
+  --paper: #f4ead7;
+  --paper-deep: #e4d6b9;
+  --surface: #faf5ea;
+  --graphite: #0d1311;
+  --graphite-soft: #16201c;
   --gold: #ffc222;
   --gold-hover: #e8ad0c;
-  --muted-on-light: #59615f;
-  --muted-on-dark: #bcc3bf;
-  --line-on-light: rgba(7, 13, 13, 0.14);
-  --line-on-dark: rgba(240, 239, 236, 0.18);
+  --muted-on-light: #5b5243;
+  --muted-on-dark: #c3c8bf;
+  --line-on-light: rgba(13, 19, 17, 0.18);
+  --line-on-dark: rgba(241, 231, 212, 0.2);
 
-  --font: 'Noto Sans Variable', 'Noto Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Literata Variable', 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  --font: 'Onest Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
   --header-h: 64px;
   --pad-x: 20px;
-  --section-y: 64px;
-  --radius-ctl: 12px;
-  --radius-media: 20px;
+  --section-y: 80px;
+  --radius-ctl: 10px;
   --container: 1280px;
+  --fold: 28px;
+  --title-size: clamp(2.3rem, 7.4vw, 3rem);
   --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Paper fibre: a 240px tile, rasterised once. */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n' x='0' y='0' width='100%25' height='100%25'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .36  0 0 0 0 .20  .34 0 0 0 -.135'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
 
   color-scheme: light;
 }
@@ -26,14 +40,17 @@
   :root {
     --header-h: 76px;
     --pad-x: 32px;
-    --section-y: 96px;
+    --section-y: 112px;
+    --fold: 36px;
+    --title-size: clamp(2.8rem, 4.8vw, 4.6rem);
   }
 }
 
 @media (min-width: 1024px) {
   :root {
     --pad-x: 56px;
-    --section-y: 128px;
+    --section-y: 144px;
+    --fold: 44px;
   }
 }
 
@@ -45,7 +62,7 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  scroll-padding-top: calc(var(--header-h) + 8px);
+  scroll-padding-top: calc(var(--header-h) + 16px);
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -56,12 +73,13 @@ html {
 
 body {
   margin: 0;
-  background: var(--paper);
+  background: var(--paper) var(--grain);
   color: var(--graphite);
   font-family: var(--font);
-  font-size: 16px;
+  font-size: 17px;
   line-height: 1.6;
   font-weight: 400;
+  font-optical-sizing: auto;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
@@ -83,6 +101,14 @@ dl,
 dd,
 figure {
   margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-optical-sizing: auto;
 }
 
 ul,
@@ -111,7 +137,12 @@ button {
 
 a {
   color: inherit;
-  text-underline-offset: 0.2em;
+  text-underline-offset: 0.22em;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--graphite);
 }
 
 :focus-visible {
@@ -159,32 +190,36 @@ a {
   border: 0;
 }
 
-/* Buttons */
+/* Buttons: one gold primary per view, quiet outline for the rest. */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  min-height: 48px;
-  padding: 0 22px;
+  min-height: 52px;
+  padding: 0 26px;
   border: 1px solid transparent;
   border-radius: var(--radius-ctl);
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   text-decoration: none;
   transition:
     background-color 170ms var(--ease),
     border-color 170ms var(--ease),
-    box-shadow 170ms var(--ease);
+    transform 170ms var(--ease);
 }
 
 .btn svg {
-  transition: transform 170ms var(--ease);
+  transition: transform 220ms var(--ease-out);
 }
 
 .btn:hover svg {
-  transform: translateX(2px);
+  transform: translateX(3px);
+}
+
+.btn:active {
+  transform: translateY(1px);
 }
 
 .btn--primary {
@@ -220,26 +255,50 @@ a {
   gap: 8px;
   font-weight: 500;
   text-decoration-thickness: 1px;
+  transition: text-decoration-thickness 160ms var(--ease);
 }
 
-.eyebrow {
-  font-size: 13px;
+.link:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Small label that carries information (a date, a status) — sentence case, never decoration. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.3;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .section-title {
-  font-size: clamp(1.9rem, 6.2vw, 2.4rem);
-  line-height: 1.12;
+  font-size: var(--title-size);
+  line-height: 1.04;
   letter-spacing: -0.03em;
-  font-weight: 700;
   text-wrap: balance;
 }
 
-@media (min-width: 768px) {
-  .section-title {
-    font-size: clamp(2.5rem, 5vw, 4rem);
-  }
+/*
+  Folded corner: the top-right corner is cut and the flap shows the paper's back.
+  Apply to a block (photo frame, panel). Clip-path cuts the corner; ::after draws the flap inside the clipped shape.
+*/
+.fold {
+  position: relative;
+  clip-path: polygon(0 0, calc(100% - var(--fold)) 0, 100% var(--fold), 100% 100%, 0 100%);
+}
+
+.fold::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: var(--fold);
+  height: var(--fold);
+  background: linear-gradient(225deg, rgba(13, 19, 17, 0.22), var(--paper-deep) 55%);
+  clip-path: polygon(0 0, 100% 100%, 0 100%);
+  pointer-events: none;
 }

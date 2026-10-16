@@ -3,9 +3,12 @@
 ## Phase
 Phase 4 (polish and handover) delivered 2026-10-11. **Not deployed; no Supabase project created or changed.** Everything is verified locally; going live needs the owner inputs in `docs/LAUNCH-CHECKLIST.md`.
 
+## Redesign (2026-10-16, owner request: "premium", see `docs/DESIGN.md`)
+Visual system rebuilt around the owner-supplied pop-up-book illustration: warm paper palette, Literata + Onest, folded corners, ridge-cut chapters, restrained motion, new hero/university/closing compositions, mobile art direction, SEO plumbing (`VITE_SITE_URL`, social card, JSON-LD). **Behaviour change:** the QANAT scroll video moved from the hero to the closing section (the hero now belongs to the illustration and its own bird layer). Copy, facts, forms, backend and privacy rules are untouched. All checks pass (see DESIGN.md); the H.264 file itself could not be decoded in the CI Chromium, the video checks ran on a VP9 stand-in. Still unverified: Safari/iOS, real devices, Kazakh/English native review, publication permission for the illustration and the team photo.
+
 ## Decisions in force (defaults, owner may change)
 - Stack: React + TS + Vite, CSS Modules, React Router, GSAP/ScrollTrigger. Default locale `/kk`; `/ru`, `/en` available.
-- Owner request (Phase 2): the mascot video plays with scrolling and the mascot moves with scroll direction → implemented as scroll-scrubbed playback inside the hero (forward down, backward up) plus a reversible drift of the QANAT panel. It cannot leave the hero: the video background is opaque.
+- Owner request (Phase 2): the mascot video plays with scrolling and moves with scroll direction → scroll-scrubbed playback (forward down, backward up). Since the redesign it lives in the closing section (bounded folded-corner sheet; the opaque video cannot leave it).
 - `qanat-intro.MP4` is the intended video. Re-encoded to 720px all-intra (1.3 MB) so frame seeking is exact.
 - Main team photo: IMG_0357 (default; publication permission still unconfirmed).
 - Header brand is a text name (official logo unusable on a light header).

@@ -18,7 +18,7 @@ export function Footer({ onHome }: { onHome: boolean }) {
       <div className={`container ${styles.grid}`}>
         <div className={styles.brandCol}>
           <p className={styles.brand}>
-            <span className={styles.brandName}>{t.brand.name}</span> {t.brand.suffix}
+            <span className={styles.brandName}>{t.brand.name}</span> <span className={styles.brandSuffix}>{t.brand.suffix}</span>
           </p>
           <p className={styles.tagline}>{t.footer.tagline}</p>
           <a className={styles.social} href={links.teamInstagram} target="_blank" rel="noopener noreferrer">
@@ -72,6 +72,7 @@ export function Footer({ onHome }: { onHome: boolean }) {
           {systemReduced && <p className={styles.systemNote}>{t.motion.systemReduced}</p>}
         </div>
       </div>
+      <p className={styles.mark} aria-hidden="true" data-text={`${t.brand.name} ${t.brand.suffix}`} />
     </footer>
   )
 }

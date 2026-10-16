@@ -7,23 +7,27 @@
   gap: 40px;
 }
 
-.eyebrow {
-  margin-bottom: 16px;
-  color: var(--muted-on-light);
-}
-
 .title {
-  font-size: clamp(1.9rem, 5.5vw, 2.3rem);
-  line-height: 1.12;
+  font-size: var(--title-size);
+  line-height: 1.04;
   letter-spacing: -0.03em;
-  font-weight: 700;
   text-wrap: balance;
 }
 
 .body {
-  margin-block: 20px 28px;
-  max-width: 32em;
+  margin-block: 24px 32px;
+  max-width: 28em;
   color: var(--muted-on-light);
+}
+
+/* The shadow sits on a parent: a filter on the clipped element would be clipped with it. */
+.sheet {
+  filter: drop-shadow(0 22px 24px rgba(60, 40, 10, 0.16));
+}
+
+.frame {
+  --fold: 40px;
+  background: var(--paper-deep);
 }
 
 .photo {
@@ -31,20 +35,19 @@
   height: auto;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: var(--radius-media);
-  background: #d9d6cf;
+  background: var(--paper-deep);
 }
 
 .caption {
-  margin-top: 12px;
-  max-width: 40em;
-  font-size: 14px;
+  margin-top: 14px;
+  max-width: 38em;
+  font-size: 15px;
   color: var(--muted-on-light);
 }
 
 @media (min-width: 768px) {
-  .title {
-    font-size: clamp(2.2rem, 3.4vw, 3rem);
+  .frame {
+    --fold: 56px;
   }
 }
 

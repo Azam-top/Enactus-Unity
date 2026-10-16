@@ -1,66 +1,101 @@
 .section {
-  padding-block: 0 var(--section-y);
+  padding-block: 8px var(--section-y);
 }
 
 .head {
-  max-width: 760px;
+  display: grid;
+  gap: 16px;
 }
 
 .lead {
-  margin-top: 16px;
-  max-width: 34em;
+  max-width: 28em;
   color: var(--muted-on-light);
 }
 
 .paths {
   display: grid;
-  gap: 0;
+  gap: 12px;
   margin-top: 40px;
-  border-top: 1px solid var(--line-on-light);
 }
 
+/* Each path is a sheet of paper; its corner lifts on hover and stays folded when chosen. */
 .path {
+  position: relative;
   display: grid;
-  gap: 6px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'icon label go'
+    'icon hint  go';
+  column-gap: 18px;
+  row-gap: 4px;
+  align-items: center;
   width: 100%;
   min-height: 48px;
-  padding: 24px 0 24px;
+  padding: 22px 22px 22px 20px;
   text-align: left;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--line-on-light);
-  border-top: 3px solid transparent;
-  margin-top: -1px;
-  transition: background-color 170ms var(--ease);
+  background: color-mix(in srgb, var(--surface) 62%, transparent);
+  border: 1px solid var(--line-on-light);
+  border-radius: 14px;
+  transition:
+    background-color 200ms var(--ease),
+    border-color 200ms var(--ease),
+    transform 260ms var(--ease-out);
 }
 
 .path:hover {
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  background: var(--surface);
+  border-color: var(--graphite);
 }
 
 .path[aria-pressed='true'] {
   background: var(--surface);
-  border-top-color: var(--gold);
+  border-color: var(--graphite);
+  box-shadow: inset 0 -4px 0 var(--gold);
 }
 
-.number {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: var(--muted-on-light);
+.icon {
+  grid-area: icon;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--paper-deep);
+  transition: background-color 200ms var(--ease);
+}
+
+.path:hover .icon,
+.path[aria-pressed='true'] .icon {
+  background: var(--gold);
 }
 
 .pathLabel {
+  grid-area: label;
+  font-family: var(--font-display);
   font-size: 24px;
-  line-height: 1.2;
-  font-weight: 700;
+  line-height: 1.15;
   letter-spacing: -0.02em;
+  font-weight: 500;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .pathHint {
-  max-width: 24em;
+  grid-area: hint;
   font-size: 16px;
+  line-height: 1.45;
   color: var(--muted-on-light);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.go {
+  grid-area: go;
+  transition: transform 260ms var(--ease-out);
+}
+
+.path:hover .go {
+  transform: translateX(4px);
 }
 
 .panelWrap[hidden] {
@@ -68,38 +103,62 @@
 }
 
 .panelWrap {
-  margin-top: 24px;
+  margin-top: 20px;
 }
 
 .panel {
-  max-width: 860px;
-  padding: 24px 20px;
+  max-width: 900px;
+  padding: 28px 20px 32px;
   background: var(--surface);
-  border: 1px solid var(--line-on-light);
-  border-radius: var(--radius-media);
+  border-radius: 0;
 }
 
 @media (min-width: 768px) {
+  .head {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: end;
+    gap: 48px;
+  }
+
   .paths {
-    grid-template-columns: repeat(3, 1fr);
-    column-gap: 24px;
-    border-top: 0;
-  }
-
-  .path {
-    height: 100%;
-    padding: 28px 24px 32px;
-    border-top: 3px solid var(--line-on-light);
-    border-bottom: 0;
-    margin-top: 0;
-  }
-
-  .path[aria-pressed='true'] {
-    border-top-color: var(--gold);
+    margin-top: 56px;
   }
 
   .panel {
-    padding: 40px;
+    padding: 48px 48px 52px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .paths {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
   }
 
+  /* Tall sheets on wide screens: the picture on top, then the words. */
+  .path {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'icon  go'
+      'label label'
+      'hint  hint';
+    align-items: start;
+    align-content: start;
+    height: 100%;
+    min-height: 280px;
+    padding: 28px 26px 30px;
+    row-gap: 10px;
+  }
+
+  .icon {
+    margin-bottom: 36px;
+  }
+
+  .go {
+    padding-top: 4px;
+  }
+
+  .pathLabel {
+    font-size: 28px;
+  }
 }

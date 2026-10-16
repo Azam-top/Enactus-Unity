@@ -9,7 +9,7 @@ the forms validate and explain, and say "Предварительная верс
 
 ## Requirements
 Node 22.18+ (developed on 26; the check scripts run `.ts` files directly), npm, Google Chrome for the browser checks
-(`CHROME_PATH=/path/to/chrome` if it is not `/usr/bin/google-chrome-stable`). `ffmpeg` + ImageMagick only if you re-make media.
+(`CHROME_PATH=/path/to/chrome` if it is not `/usr/bin/google-chrome-stable`). `ffmpeg` + ImageMagick only if you re-make media. Fonts are self-hosted in `public/fonts` (no font CDN).
 
 ## Run
 ```bash
@@ -30,7 +30,7 @@ If npm is slow or drops connections, retry with `npm install --prefer-offline --
 | `npm run test:csp` | the whole UI runs under the recommended Content-Security-Policy with zero violations |
 
 ## Environment variables
-Browser (build time, all PUBLIC — see `.env.example`): `VITE_SUBMISSION_ENABLED`, `VITE_SUBMISSION_URL`,
+Browser (build time, all PUBLIC — see `.env.example`): `VITE_SITE_URL` (optional until the domain exists), `VITE_SUBMISSION_ENABLED`, `VITE_SUBMISSION_URL`,
 `VITE_TURNSTILE_SITE_KEY`, `VITE_CONSENT_VERSION`, `VITE_PRIVACY_CONTACT`, `VITE_RETENTION_DAYS`.
 Sending turns on only when **all** are set and `VITE_SUBMISSION_ENABLED=true`.
 Edge Function secrets (never in the repo or the browser; `supabase/functions/.env.example`): `ALLOWED_ORIGINS`,

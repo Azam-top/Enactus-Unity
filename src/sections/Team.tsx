@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useT } from '../content/LocaleContext'
 import { useMotion } from '../motion/MotionContext'
-import { setupReveal } from '../motion/motion'
+import { setupUnfold } from '../motion/motion'
 import { Icon } from '../components/Icon'
 import styles from './Team.module.css'
 
@@ -12,13 +12,12 @@ export function Team({ onJoin }: Props) {
   const { reduced } = useMotion()
   const ref = useRef<HTMLElement>(null)
 
-  useEffect(() => (ref.current ? setupReveal(ref.current, !reduced) : undefined), [reduced])
+  useEffect(() => (ref.current ? setupUnfold(ref.current, !reduced) : undefined), [reduced])
 
   return (
     <section id="team" className={styles.section} ref={ref} aria-labelledby="team-title">
       <div className={`container ${styles.grid}`}>
-        <div className={styles.text} data-reveal>
-          <p className={`eyebrow ${styles.eyebrow}`}>{t.team.eyebrow}</p>
+        <div className={styles.text}>
           <h2 id="team-title" className={styles.title}>
             {t.team.title}
           </h2>
@@ -36,18 +35,24 @@ export function Team({ onJoin }: Props) {
           </a>
         </div>
 
-        <figure className={styles.figure} data-reveal>
-          <img
-            className={styles.photo}
-            src="/media/team-photo-1600.webp"
-            srcSet="/media/team-photo-800.webp 800w, /media/team-photo-1600.webp 1600w"
-            sizes="(min-width: 1024px) 640px, calc(100vw - 40px)"
-            width={1600}
-            height={1200}
-            loading="lazy"
-            decoding="async"
-            alt={t.team.alt}
-          />
+        <figure className={styles.figure}>
+          <div className={styles.sheet}>
+            <div className={`fold ${styles.frame}`}>
+              <div data-unfold>
+              <img
+                className={styles.photo}
+                src="/media/team-photo-1600.webp"
+                srcSet="/media/team-photo-800.webp 800w, /media/team-photo-1600.webp 1600w"
+                sizes="(min-width: 1024px) 640px, calc(100vw - 40px)"
+                width={1600}
+                height={1200}
+                loading="lazy"
+                decoding="async"
+                alt={t.team.alt}
+              />
+              </div>
+            </div>
+          </div>
           <figcaption className={styles.caption}>{t.team.caption}</figcaption>
         </figure>
       </div>

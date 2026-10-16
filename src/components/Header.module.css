@@ -2,15 +2,32 @@
   position: sticky;
   top: 0;
   z-index: 50;
+}
+
+/*
+  Restrained glass lives on a pseudo-element: backdrop-filter on the header itself would make it the containing block
+  of the fixed mobile menu. Opaque paper first, blur only where supported.
+*/
+.header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
   background: var(--paper);
   border-bottom: 1px solid var(--line-on-light);
+  opacity: 0;
+  transition: opacity 220ms var(--ease);
+}
+
+.header[data-scrolled='true']::before {
+  opacity: 1;
 }
 
 @supports (backdrop-filter: blur(12px)) {
-  .header {
-    background: color-mix(in srgb, var(--paper) 88%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+  .header::before {
+    background: color-mix(in srgb, var(--paper) 86%, transparent);
+    backdrop-filter: blur(14px) saturate(1.1);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
   }
 }
 
@@ -24,10 +41,10 @@
 
 .brand {
   display: inline-flex;
-  align-items: center;
-  gap: 0.3em;
+  gap: 0.28em;
   min-height: 44px;
-  font-size: 20px;
+  align-items: center;
+  font-size: 21px;
   letter-spacing: -0.02em;
   text-decoration: none;
   white-space: nowrap;
@@ -38,16 +55,20 @@
 }
 
 .brandSuffix {
-  font-weight: 500;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.06em;
   color: var(--muted-on-light);
 }
 
 .nav {
   display: none;
   margin-left: auto;
+  gap: 4px;
 }
 
 .navLink {
+  position: relative;
   display: inline-flex;
   align-items: center;
   min-height: 44px;
@@ -57,9 +78,23 @@
   text-decoration: none;
 }
 
-.navLink:hover {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
+/* Current section: a gold bar that grows from the left. */
+.navLink::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 6px;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 260ms var(--ease-out);
+}
+
+.navLink:hover::after,
+.navLink[aria-current='location']::after {
+  transform: scaleX(1);
 }
 
 .actions {
@@ -87,12 +122,14 @@
   background: transparent;
 }
 
+/* Mobile menu: a full sheet with large display links, not a shrunken desktop dropdown. */
 .menu {
-  border-top: 1px solid var(--line-on-light);
-  background: var(--paper);
-  padding-block: 12px 20px;
-  max-height: calc(100svh - var(--header-h));
+  position: fixed;
+  inset: var(--header-h) 0 0;
+  z-index: 49;
   overflow-y: auto;
+  padding-block: 8px 28px;
+  background: var(--paper) var(--grain);
 }
 
 .menu[hidden] {
@@ -102,11 +139,18 @@
 .menuLink {
   display: flex;
   align-items: center;
-  min-height: 48px;
-  font-size: 18px;
-  font-weight: 500;
+  min-height: 72px;
+  font-family: var(--font-display);
+  font-size: 2.1rem;
+  letter-spacing: -0.02em;
   text-decoration: none;
   border-bottom: 1px solid var(--line-on-light);
+}
+
+.menuLink[aria-current='location'] {
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-decoration-thickness: 3px;
 }
 
 .menuLang {
@@ -114,24 +158,26 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 24px;
 }
 
 .menuLangLabel {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--muted-on-light);
 }
 
 .menuCta {
   display: flex;
-  margin-top: 16px;
+  width: 100%;
+  margin-top: 20px;
+  min-height: 56px;
 }
 
 @media (min-width: 520px) {
   .cta {
     display: inline-flex;
     min-height: 44px;
-    padding: 0 16px;
+    padding: 0 18px;
     font-size: 15px;
   }
 
@@ -157,7 +203,7 @@
 
   .cta {
     min-height: 48px;
-    padding: 0 22px;
+    padding: 0 24px;
     font-size: 16px;
   }
 }
