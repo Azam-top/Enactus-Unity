@@ -6,6 +6,9 @@ Phase 4 (polish and handover) delivered 2026-10-11. **Not deployed; no Supabase 
 ## Redesign (2026-10-16, owner request: "premium", see `docs/DESIGN.md`)
 Visual system rebuilt around the owner-supplied pop-up-book illustration: warm paper palette, Literata + Onest, folded corners, ridge-cut chapters, restrained motion, new hero/university/closing compositions, mobile art direction, SEO plumbing (`VITE_SITE_URL`, social card, JSON-LD). **Behaviour change:** the QANAT scroll video moved from the hero to the closing section (the hero now belongs to the illustration and its own bird layer). Copy, facts, forms, backend and privacy rules are untouched. All checks pass (see DESIGN.md); the H.264 file itself could not be decoded in the CI Chromium, the video checks ran on a VP9 stand-in. Still unverified: Safari/iOS, real devices, Kazakh/English native review, publication permission for the illustration and the team photo.
 
+## Magic UI / DyeWhorl layer (2026-10-16, owner request)
+Added Tailwind v4 (utilities only), `motion`, shadcn-style `src/components/ui`, Magic UI `bento-grid`, `border-beam`, `dia-text-reveal` and the supplied `dye-whorl`; applied to the participation paths, the closing headline and the Projects chapter (details and guards in `docs/DESIGN.md`). The shadcn CLI could not be run here (registry host blocked by the sandbox network), so the same source files were copied from the public Magic UI repository. Default test runs disable WebGL (`WEBGL=1` keeps it); the ink has its own checks.
+
 ## Decisions in force (defaults, owner may change)
 - Stack: React + TS + Vite, CSS Modules, React Router, GSAP/ScrollTrigger. Default locale `/kk`; `/ru`, `/en` available.
 - Owner request (Phase 2): the mascot video plays with scrolling and moves with scroll direction → scroll-scrubbed playback (forward down, backward up). Since the redesign it lives in the closing section (bounded folded-corner sheet; the opaque video cannot leave it).

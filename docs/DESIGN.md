@@ -63,6 +63,17 @@ against the same footage re-encoded to VP9 (`VIDEO_OVERRIDE`, see CLAUDE.md); th
 - Keep illustration and evidence apart: the book is atmosphere; projects, dates and sources stay typographic and cited.
 - Any new asset: same cream, same cut-paper look, a transparent cut-out if it should move, and a label if generated.
 
+## Magic UI + DyeWhorl layer (added after the first redesign, owner request)
+| Component | Where | How it is kept honest |
+|---|---|---|
+| `bento-grid` | "С чего начнём?" — the three visitor paths as a bento (idea = large primary tile) | Each tile is one real `<button aria-pressed>` (not hover-only, call to action also on keyboard focus); drawings are folded-paper SVGs; shadcn `Button` and radix icons replaced by the site's own link style (2 fewer deps) |
+| `border-beam` | Gold beam on the idea tile only | One element on the page; colours changed from the default purple/orange to the site's gold; absent under reduced motion; code-split, mounted after idle |
+| `dia-text-reveal` | Closing headline "Следующий проект…" | Sweep colours are the illustration's hues (blue, sage, gold) ending in graphite; plain text until idle/reduced motion; the text is real DOM text throughout |
+| `dye-whorl` | Ink in water behind the dark Projects chapter | Themed from the section (light ink in graphite), 28 % opacity so text keeps ≥ 4.5:1, listens on the whole section so text stays clickable, `touch-action: pan-y` (never traps scrolling), ≥768 px only, off with Save-Data / no WebGL2 / reduced motion (still frame), sleeps off-screen, own chunk |
+
+Cost: first-load JS 169 KB gzip (was 156) — Tailwind-merge + bento; the `motion` chunk (43 KB gzip) and the ink chunk (9 KB) load only after idle / near the chapter.
+Lab, phone @ 4× CPU slowdown: LCP ≈ 2.3 s (was 2.1 s), CLS 0.003. Tests: shots 106/106, axe 0 violations, CSP clean, mock UI 21/21.
+
 ## Not done (and why)
 - A custom cursor, parallax mouse-tilt, page-transition library, smooth-scroll library, dark mode: each adds weight or
   scroll-hijack risk for little gain (brief §4/§6). Dark mode can be added by re-pointing the tokens later.

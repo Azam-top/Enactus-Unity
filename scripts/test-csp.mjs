@@ -23,7 +23,9 @@ export const CSP = process.env.CSP_OVERRIDE ?? [
 const server = spawn('node', ['scripts/serve-compressed.mjs', 'dist', '4176'], { stdio: 'ignore', env: { ...process.env, CSP } })
 for (let i = 0; i < 40; i++) { try { if ((await fetch('http://127.0.0.1:4176/ru')).ok) break } catch { /* wait */ } await sleep(150) }
 
-const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true })
+// WebGL is off by default: the Projects ink simulation is GPU work and runs very slowly on a software renderer, which would
+// time out full-page screenshots. WEBGL=1 keeps it on. The page must work without WebGL either way (it is tested here).
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true, args: process.env.WEBGL === '1' ? [] : ['--disable-3d-apis'] })
 const problems = []
 try {
 for (const [width, height] of [[1440, 900], [390, 844]]) {

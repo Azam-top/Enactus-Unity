@@ -21,10 +21,15 @@
     "test:csp": "node scripts/test-csp.mjs"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "clsx": "^2.1.1",
     "gsap": "^3.15.0",
+    "motion": "^14.3.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "react-router-dom": "^7.18.4"
+    "react-router-dom": "^7.18.4",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.8",

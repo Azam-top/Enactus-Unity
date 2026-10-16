@@ -56,16 +56,19 @@ export const en: Dictionary = {
         number: '01',
         label: 'I have an idea',
         hint: 'Noticed a problem? Tell us about it, even if there is no solution yet.',
+        cta: 'Share the idea',
       },
       join: {
         number: '02',
         label: 'I want to take part',
         hint: 'You can do something and want to try it in a team.',
+        cta: 'Say you are interested',
       },
       collab: {
         number: '03',
         label: 'I want to collaborate',
         hint: 'You represent an organization and see a shared interest.',
+        cta: 'Write a proposal',
       },
     },
     common: {

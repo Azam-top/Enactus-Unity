@@ -15,7 +15,9 @@ for (let i = 0; i < 40; i++) {
 
 const results = []
 const log = (name, ok, detail = '') => { results.push(ok); console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ' — ' + detail : ''}`) }
-const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true })
+// WebGL is off by default: the Projects ink simulation is GPU work and runs very slowly on a software renderer, which would
+// time out full-page screenshots. WEBGL=1 keeps it on. The page must work without WebGL either way (it is tested here).
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true, args: process.env.WEBGL === '1' ? [] : ['--disable-3d-apis'] })
 
 const CORS = { 'access-control-allow-origin': base, 'access-control-allow-headers': 'content-type', 'access-control-allow-methods': 'POST, OPTIONS', vary: 'Origin' }
 const STUB = `(() => {

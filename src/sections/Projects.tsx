@@ -1,11 +1,15 @@
-import { useLayoutEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useT } from '../content/LocaleContext'
 import { links } from '../config/links'
 import { Icon } from '../components/Icon'
 import { Disclosure } from '../components/Disclosure'
 import { useMotion } from '../motion/MotionContext'
-import { setupRidgeParallax } from '../motion/motion'
+import { useAfterIdle } from '../hooks/useAfterIdle'
+import { prefersSaveData, setupRidgeParallax } from '../motion/motion'
 import styles from './Projects.module.css'
+
+// A fluid solver on the GPU: loaded as its own chunk, and only on screens that can afford it (see `ink` below).
+const DyeWhorl = lazy(() => import('@/components/ui/dye-whorl'))
 
 type Props = { onDiscuss: (contextTag: string) => void }
 
@@ -22,6 +26,27 @@ export function Projects({ onDiscuss }: Props) {
   const sectionRef = useRef<HTMLElement>(null)
   const ridgeRefs = useRef<(HTMLDivElement | null)[]>([])
   const { reduced } = useMotion()
+  const [ink, setInk] = useState(false)
+  const idle = useAfterIdle()
+
+  // Ink in the dark chapter: ≥768px, no Save-Data, WebGL2 present (the component itself bails out without it).
+  // Mounted once, after the page is idle and the chapter is within ~half a screen of the viewport; it then sleeps whenever off screen.
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section || ink || !idle) return
+    if (!window.matchMedia('(min-width: 768px)').matches || prefersSaveData() || !('IntersectionObserver' in window)) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setInk(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: '450px 0px' },
+    )
+    io.observe(section)
+    return () => io.disconnect()
+  }, [ink, idle])
 
   useLayoutEffect(() => {
     const section = sectionRef.current
@@ -39,8 +64,15 @@ export function Projects({ onDiscuss }: Props) {
   )
 
   return (
-    <section id="projects" className={`on-dark ${styles.section}`} ref={sectionRef} aria-labelledby="projects-title">
+    <section id="projects" className={`on-dark ${styles.section}`} ref={sectionRef} aria-labelledby="projects-title" data-dye-surface="">
       <div className={styles.backdrop} aria-hidden="true">
+        {ink && (
+          <div className={styles.ink}>
+            <Suspense fallback={null}>
+              <DyeWhorl paused={reduced} className="h-full w-full" />
+            </Suspense>
+          </div>
+        )}
         {RIDGES.map((d, i) => (
           <div key={i} className={styles.ridge} ref={(el) => void (ridgeRefs.current[i] = el)} data-depth={i}>
             <svg viewBox="0 0 1440 300" preserveAspectRatio="none" focusable="false">

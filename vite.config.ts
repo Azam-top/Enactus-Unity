@@ -2,6 +2,7 @@ import { appendFileSync, existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 
 const LOCALES = ['kk', 'ru', 'en']
 
@@ -53,5 +54,8 @@ function seo(siteUrl: string): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_')
-  return { plugins: [react(), seo(env.VITE_SITE_URL ?? '')] }
+  return {
+    plugins: [react(), tailwindcss(), seo(env.VITE_SITE_URL ?? '')],
+    resolve: { alias: { '@': resolve(process.cwd(), 'src') } },
+  }
 })

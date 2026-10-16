@@ -1,11 +1,18 @@
-import { useLayoutEffect, useRef } from 'react'
+import { lazy, Suspense, useLayoutEffect, useRef } from 'react'
 import { useT } from '../content/LocaleContext'
 import { useMotion } from '../motion/MotionContext'
+import { useAfterIdle } from '../hooks/useAfterIdle'
 import { prefersSaveData, setupFinalMotion } from '../motion/motion'
 import { links } from '../config/links'
 import { Icon } from '../components/Icon'
 import { Mascot } from '../components/Mascot'
 import styles from './FinalAction.module.css'
+
+// The text-reveal (and the `motion` library behind it) loads after first paint; until then the plain title is shown.
+const DiaTextReveal = lazy(() => import('@/components/ui/dia-text-reveal').then((m) => ({ default: m.DiaTextReveal })))
+
+// The sweep borrows the illustration's own hues (mountain blue, sage, gold) and ends in graphite text.
+const REVEAL_COLORS = ['#7c93ab', '#8fa37a', '#ffc222', '#e8ad0c', '#0d1311']
 
 type Props = { onShareIdea: () => void; onCollaborate: () => void }
 
@@ -13,6 +20,7 @@ export function FinalAction({ onShareIdea, onCollaborate }: Props) {
   const t = useT()
   const f = t.finalAction
   const { reduced } = useMotion()
+  const idle = useAfterIdle()
   const ref = useRef<HTMLElement>(null)
   const frameRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -31,7 +39,13 @@ export function FinalAction({ onShareIdea, onCollaborate }: Props) {
         <div className={`fold ${styles.panel}`}>
           <div className={styles.text}>
             <h2 id="contact-title" className={styles.title}>
-              {f.title}
+              {reduced || !idle ? (
+                f.title
+              ) : (
+                <Suspense fallback={f.title}>
+                  <DiaTextReveal text={f.title} colors={REVEAL_COLORS} textColor="var(--graphite)" duration={1.9} />
+                </Suspense>
+              )}
             </h2>
             <div className={styles.actions}>
               <a

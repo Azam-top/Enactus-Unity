@@ -6,7 +6,9 @@ const base = process.env.BASE_URL ?? 'http://127.0.0.1:4173'
 const out = 'screenshots'
 mkdirSync(out, { recursive: true })
 
-const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true })
+// WebGL is off by default: the Projects ink simulation is GPU work and runs very slowly on a software renderer, which would
+// time out full-page screenshots. WEBGL=1 keeps it on. The page must work without WebGL either way (it is tested here).
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true, args: process.env.WEBGL === '1' ? [] : ['--disable-3d-apis'] })
 // Chromium builds without H.264 (e.g. the open-source one in CI containers) cannot decode the real hero video.
 // VIDEO_OVERRIDE=/path/to/same-footage-in-VP9.mp4 serves a stand-in for the video checks; real Chrome does not need it.
 const videoOverride = process.env.VIDEO_OVERRIDE
@@ -446,6 +448,87 @@ for (const loc of locales) {
   const dupes = await page.locator('video').count()
   log('resize + language switch: one video, same bird scroll response (no duplicate triggers)', dupes === 1 && Math.abs(Number(first) - Number(second)) < 0.2, `opacity@500: ${first} → ${second}`)
   await ctx.close()
+}
+
+// ---------- 12. Bento paths, border beam, text reveal, ink (Magic UI + DyeWhorl components) ----------
+{
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  const page = await ctx.newPage()
+  await page.goto(`${base}/ru`, { waitUntil: 'networkidle' })
+  await page.waitForTimeout(4500) // idle-mounted extras
+  const tiles = page.locator('#participate [role="listitem"] button')
+  log('bento: three path tiles, each one real button named after its path', (await tiles.count()) === 3 && (await page.getByRole('button', { name: /У меня есть идея/ }).count()) === 1 && (await page.getByRole('button', { name: /Хочу сотрудничать/ }).count()) === 1)
+  const beam = await page.evaluate(() => document.querySelectorAll('#participate [role="listitem"] [style*="offset-path"], #participate [role="listitem"] [style*="offsetPath"]').length)
+  log('border beam: exactly one, on the idea tile, once the page is idle', beam === 1, `beams=${beam}`)
+  // keyboard: focusing a tile shows its call to action (nothing is hover-only) and a visible focus ring
+  await page.locator('#participate [role="listitem"] button').first().focus()
+  await page.waitForTimeout(500)
+  const cta = await page.evaluate(() => {
+    const card = document.activeElement.closest('[role="listitem"]')
+    const rise = [...card.querySelectorAll('div')].find((d) => d.className.includes('lg:flex'))
+    return { opacity: Number(getComputedStyle(rise).opacity), outline: getComputedStyle(document.activeElement).outlineStyle }
+  })
+  log('bento: keyboard focus reveals the call to action and draws a focus ring', cta.opacity === 1 && cta.outline !== 'none', JSON.stringify(cta))
+  await page.keyboard.press('Enter')
+  await page.waitForTimeout(500)
+  log('bento: Enter opens the form panel and marks the tile pressed', (await page.locator('#participate [role="listitem"] button').first().getAttribute('aria-pressed')) === 'true' && (await page.getByText('Шаг 1 из 3').isVisible()))
+  await ctx.close()
+
+  // text reveal: the headline is real text from the start and ends fully readable
+  const ctx2 = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  const p2 = await ctx2.newPage()
+  await p2.goto(`${base}/ru`, { waitUntil: 'networkidle' })
+  await p2.waitForTimeout(3500)
+  await p2.evaluate(() => { document.documentElement.style.scrollBehavior = 'auto'; document.getElementById('contact').scrollIntoView({ block: 'center' }) })
+  await p2.waitForTimeout(3600)
+  const title = await p2.evaluate(() => { const h = document.getElementById('contact-title'); const s = h.querySelector('span'); return { text: h.textContent, color: s ? getComputedStyle(s).color : 'plain', accessible: h.textContent.trim().length > 20 } })
+  log('text reveal: heading text is intact and the sweep has finished', title.accessible && /Следующий проект/.test(title.text), JSON.stringify(title))
+  await ctx2.close()
+
+  // reduced motion: no beam, heading plain, ink (if any) is a still frame
+  const ctx3 = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: 'reduce' })
+  const p3 = await ctx3.newPage()
+  await p3.goto(`${base}/ru`, { waitUntil: 'networkidle' })
+  await p3.waitForTimeout(4000)
+  const rm = await p3.evaluate(() => ({ beams: document.querySelectorAll('#participate [style*="offset-path"]').length, plain: document.querySelector('#contact-title span') === null }))
+  log('reduced motion: no border beam and the closing heading is plain text', rm.beams === 0 && rm.plain, JSON.stringify(rm))
+  await ctx3.close()
+
+  // phone: bento tiles stack, nothing overflows, no ink canvas is created
+  const ctx4 = await browser.newContext({ viewport: { width: 390, height: 844 } })
+  const p4 = await ctx4.newPage()
+  await p4.goto(`${base}/ru`, { waitUntil: 'networkidle' })
+  await p4.evaluate(() => document.getElementById('projects').scrollIntoView())
+  await p4.waitForTimeout(2500)
+  const ph = await p4.evaluate(() => ({ canvas: document.querySelectorAll('#projects canvas').length, overflow: document.documentElement.scrollWidth - innerWidth }))
+  log('phone: no ink simulation is started and nothing overflows', ph.canvas === 0 && ph.overflow <= 0, JSON.stringify(ph))
+  await ctx4.close()
+}
+
+// ---------- 13. Ink simulation with WebGL on (own browser): mounts near the chapter, honours Save-Data, never traps scrolling ----------
+{
+  const gl = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] })
+  const ctx = await gl.newContext({ viewport: { width: 1440, height: 900 } })
+  const page = await ctx.newPage()
+  const errors = []
+  page.on('pageerror', (e) => errors.push(String(e)))
+  await page.goto(`${base}/ru`, { waitUntil: 'networkidle' })
+  await page.waitForTimeout(300)
+  const before = await page.evaluate(() => document.querySelectorAll('#projects canvas').length) // still on the hero: nothing mounted yet
+  await page.evaluate(() => document.getElementById('projects').scrollIntoView())
+  await page.waitForTimeout(4000)
+  const info = await page.evaluate(() => { const c = document.querySelector('#projects canvas'); return c ? { w: c.width, h: c.height, touch: getComputedStyle(c.parentElement).touchAction, hidden: c.getAttribute('aria-hidden') } : null })
+  log('ink: canvas is created only when the chapter is near, is decorative and never blocks touch scrolling', before === 0 && info && info.w > 100 && info.hidden === 'true' && info.touch === 'pan-y' && errors.length === 0, JSON.stringify({ before, info, errors }))
+  await ctx.close()
+  const ctx2 = await gl.newContext({ viewport: { width: 1440, height: 900 } })
+  const p2 = await ctx2.newPage()
+  await p2.addInitScript(() => { Object.defineProperty(navigator, 'connection', { value: { saveData: true } }) })
+  await p2.goto(`${base}/ru`, { waitUntil: 'networkidle' })
+  await p2.evaluate(() => document.getElementById('projects').scrollIntoView())
+  await p2.waitForTimeout(3000)
+  log('ink: Save-Data → no simulation', (await p2.evaluate(() => document.querySelectorAll('#projects canvas').length)) === 0)
+  await ctx2.close()
+  await gl.close()
 }
 
 await browser.close()

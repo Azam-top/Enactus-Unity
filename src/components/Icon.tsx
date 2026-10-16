@@ -18,12 +18,13 @@ const paths = {
 
 export type IconName = keyof typeof paths
 
-export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
+export function Icon({ name, size = 20, className }: { name: IconName; size?: number; className?: string }) {
   const filled = name === 'play'
   return (
     <svg
       width={size}
       height={size}
+      className={className}
       viewBox="0 0 24 24"
       fill={filled ? 'currentColor' : 'none'}
       stroke="currentColor"

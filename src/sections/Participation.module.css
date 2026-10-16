@@ -13,89 +13,7 @@
 }
 
 .paths {
-  display: grid;
-  gap: 12px;
   margin-top: 40px;
-}
-
-/* Each path is a sheet of paper; its corner lifts on hover and stays folded when chosen. */
-.path {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    'icon label go'
-    'icon hint  go';
-  column-gap: 18px;
-  row-gap: 4px;
-  align-items: center;
-  width: 100%;
-  min-height: 48px;
-  padding: 22px 22px 22px 20px;
-  text-align: left;
-  background: color-mix(in srgb, var(--surface) 62%, transparent);
-  border: 1px solid var(--line-on-light);
-  border-radius: 14px;
-  transition:
-    background-color 200ms var(--ease),
-    border-color 200ms var(--ease),
-    transform 260ms var(--ease-out);
-}
-
-.path:hover {
-  background: var(--surface);
-  border-color: var(--graphite);
-}
-
-.path[aria-pressed='true'] {
-  background: var(--surface);
-  border-color: var(--graphite);
-  box-shadow: inset 0 -4px 0 var(--gold);
-}
-
-.icon {
-  grid-area: icon;
-  display: grid;
-  place-items: center;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: var(--paper-deep);
-  transition: background-color 200ms var(--ease);
-}
-
-.path:hover .icon,
-.path[aria-pressed='true'] .icon {
-  background: var(--gold);
-}
-
-.pathLabel {
-  grid-area: label;
-  font-family: var(--font-display);
-  font-size: 24px;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  font-weight: 500;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.pathHint {
-  grid-area: hint;
-  font-size: 16px;
-  line-height: 1.45;
-  color: var(--muted-on-light);
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.go {
-  grid-area: go;
-  transition: transform 260ms var(--ease-out);
-}
-
-.path:hover .go {
-  transform: translateX(4px);
 }
 
 .panelWrap[hidden] {
@@ -126,39 +44,5 @@
 
   .panel {
     padding: 48px 48px 52px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .paths {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-  }
-
-  /* Tall sheets on wide screens: the picture on top, then the words. */
-  .path {
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      'icon  go'
-      'label label'
-      'hint  hint';
-    align-items: start;
-    align-content: start;
-    height: 100%;
-    min-height: 280px;
-    padding: 28px 26px 30px;
-    row-gap: 10px;
-  }
-
-  .icon {
-    margin-bottom: 36px;
-  }
-
-  .go {
-    padding-top: 4px;
-  }
-
-  .pathLabel {
-    font-size: 28px;
   }
 }

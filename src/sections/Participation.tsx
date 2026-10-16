@@ -1,6 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useRef, type ElementType } from 'react'
 import { useT } from '../content/LocaleContext'
 import { Icon, type IconName } from '../components/Icon'
+import { PathArt } from '../components/PathArt'
+import { useMotion } from '../motion/MotionContext'
+import { useAfterIdle } from '../hooks/useAfterIdle'
+import { BentoCard, BentoGrid } from '@/components/ui/bento-grid'
 import { CollabForm } from '../components/forms/CollabForm'
 import { IdeaForm } from '../components/forms/IdeaForm'
 import { JoinForm } from '../components/forms/JoinForm'
@@ -18,11 +22,21 @@ type Props = {
 }
 
 const PATHS: PathId[] = ['idea', 'join', 'collab']
-const ICONS: Record<PathId, IconName> = { idea: 'plane', join: 'hands', collab: 'link' }
+const ICON_NAMES: Record<PathId, IconName> = { idea: 'plane', join: 'hands', collab: 'link' }
+const ICONS: Record<PathId, ElementType> = {
+  idea: ({ className }: { className?: string }) => <Icon name={ICON_NAMES.idea} size={48} className={className} />,
+  join: ({ className }: { className?: string }) => <Icon name={ICON_NAMES.join} size={48} className={className} />,
+  collab: ({ className }: { className?: string }) => <Icon name={ICON_NAMES.collab} size={48} className={className} />,
+}
+
+// The border beam (and the `motion` library behind it) is loaded after first paint, only where motion is allowed.
+const BorderBeam = lazy(() => import('@/components/ui/border-beam').then((m) => ({ default: m.BorderBeam })))
 
 export function Participation({ selected, onSelect, focusToken, contextTag, onClearContext }: Props) {
   const t = useT()
   const p = t.participation
+  const { reduced } = useMotion()
+  const idle = useAfterIdle()
   const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -41,32 +55,34 @@ export function Participation({ selected, onSelect, focusToken, contextTag, onCl
           <p className={styles.lead}>{p.lead}</p>
         </div>
 
-        <ol className={styles.paths}>
+        {/* Bento: the idea path is the large tile (the primary action); the other two stack beside it. */}
+        <BentoGrid className={styles.paths} role="list">
           {PATHS.map((id) => {
             const path = p.paths[id]
             const isOn = selected === id
             return (
-              <li key={id}>
-                <button
-                  type="button"
-                  className={styles.path}
-                  aria-pressed={isOn}
-                  aria-controls="participation-panel"
-                  onClick={() => onSelect(isOn ? null : id)}
-                >
-                  <span className={styles.icon}>
-                    <Icon name={ICONS[id]} size={26} />
-                  </span>
-                  <span className={styles.pathLabel}>{path.label}</span>
-                  <span className={styles.pathHint}>{path.hint}</span>
-                  <span className={styles.go} aria-hidden="true">
-                    <Icon name="arrow" size={20} />
-                  </span>
-                </button>
-              </li>
+              <BentoCard
+                key={id}
+                role="listitem"
+                name={path.label}
+                description={path.hint}
+                cta={path.cta}
+                Icon={ICONS[id]}
+                background={<PathArt id={id} />}
+                pressed={isOn}
+                controls="participation-panel"
+                onSelect={() => onSelect(isOn ? null : id)}
+                className={id === 'idea' ? 'lg:col-span-2 lg:row-span-2' : undefined}
+              >
+                {id === 'idea' && !reduced && idle && (
+                  <Suspense fallback={null}>
+                    <BorderBeam size={150} duration={9} borderWidth={2} colorFrom="#ffc222" colorTo="#e8ad0c" />
+                  </Suspense>
+                )}
+              </BentoCard>
             )
           })}
-        </ol>
+        </BentoGrid>
 
         <div id="participation-panel" className={styles.panelWrap} hidden={!selected} ref={panelRef}>
           <div className={`fold ${styles.panel}`}>

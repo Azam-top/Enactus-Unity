@@ -1,0 +1,31 @@
+/*
+  Tailwind v4, utilities only. The site's own styling stays in CSS Modules + global.css, so Tailwind's global reset
+  ("preflight") is deliberately NOT imported: it would restyle every element on the page. Utilities live in a CSS layer,
+  which means any unlayered rule (our own CSS) still wins where both apply. Only files under src/ are scanned.
+  This file is what shadcn's components.json points at, so `npx shadcn@latest add @magicui/<name>` keeps working.
+*/
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@source '../';
+
+/* shadcn semantic tokens, mapped onto the site's tokens (global.css). One light theme, so no .dark block. */
+@theme inline {
+  --color-background: var(--paper);
+  --color-foreground: var(--graphite);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--graphite);
+  --color-muted: var(--paper-deep);
+  --color-muted-foreground: var(--muted-on-light);
+  --color-border: var(--line-on-light);
+  --color-primary: var(--gold);
+  --color-primary-foreground: var(--graphite);
+  --font-sans: var(--font);
+  --font-serif: var(--font-display);
+}
+
+/* Extra tokens read by the fluid component (src/components/ui/dye-whorl.tsx). */
+:root {
+  --ns-muted: #4d4d4d;
+  --ns-accent: #006bff;
+}

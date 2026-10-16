@@ -8,7 +8,9 @@ import { setTimeout as sleep } from 'node:timers/promises'
 const base = process.env.BASE_URL ?? 'http://127.0.0.1:4173'
 const axeSource = readFileSync('node_modules/axe-core/axe.min.js', 'utf8')
 mkdirSync('screenshots', { recursive: true })
-const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true })
+// WebGL is off by default: the Projects ink simulation is GPU work and runs very slowly on a software renderer, which would
+// time out full-page screenshots. WEBGL=1 keeps it on. The page must work without WebGL either way (it is tested here).
+const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH ?? '/usr/bin/google-chrome-stable', headless: true, args: process.env.WEBGL === '1' ? [] : ['--disable-3d-apis'] })
 const report = { axe: [], targets: [], misc: [], perf: [] }
 let failures = 0
 const note = (name, ok, detail = '') => { if (!ok) failures++; report.misc.push({ name, ok, detail }); console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ' — ' + detail : ''}`) }
@@ -119,7 +121,7 @@ for (const loc of ['ru', 'kk']) {
       if (!el || el === document.body) return null
       const cs = getComputedStyle(el)
       const visible = (cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) >= 2) || cs.boxShadow !== 'none'
-      return { tag: el.tagName.toLowerCase(), name: (el.getAttribute('aria-label') || el.textContent || '').trim().slice(0, 30), visible, y: Math.round(el.getBoundingClientRect().top) }
+      return { tag: el.tagName.toLowerCase(), name: (el.getAttribute('aria-label') || (el.getAttribute('aria-labelledby') || '').split(' ').map((id) => document.getElementById(id)?.textContent ?? '').join(' ') || el.textContent || '').trim().slice(0, 40), visible, y: Math.round(el.getBoundingClientRect().top) }
     })
     if (info) stops.push(info)
   }
